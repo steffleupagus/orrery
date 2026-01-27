@@ -1,0 +1,351 @@
+
+
+function setupDefaultFlags()
+{
+	untangleGame.flags["Labels"] = true;
+	var level = untangleGame.levels[untangleGame.currentLevel];
+	for (var i=0; i < level.flags?.length; ++i)
+	{
+		var flag = level.flags[i];
+		untangleGame.flags[flag] = true;
+	}
+}
+
+function setupCurrentLevel() 
+{	
+	setupDefaultFlags();
+			
+	untangleGame.domains = [];
+	untangleGame.moons = [];
+
+	var level = untangleGame.levels[untangleGame.currentLevel];	
+	var ctx = untangleGame.layers[0];
+	var center_x = ctx.canvas.width * 0.5;
+	var center_y = ctx.canvas.height * 0.5;
+	
+	if (level.moons)
+	{
+		for (let i=0; i < level.moons.length; ++i)
+		{
+			moon = level.moons[i];
+			moon.dist = moon.dist ?? defaultMoonDist * (3 - i)
+			untangleGame.moons.push(new Moon(moon))
+		}
+		updateMoons(untangleGame.day);
+	}
+	
+	if (level.domains)
+	{
+		for (var key in level.domains) 
+		{
+			untangleGame.domains[key] = new Domain(key, center_x, center_y, defaultDomainSize);
+		}	
+		connectDomains();	
+		arrangeDomains();
+	}
+}
+
+
+function updateDay(day)
+{
+	untangleGame.day = day
+	updateMoons(untangleGame.day);
+}
+
+function gameloop() 
+{	
+	drawLayerBG();
+	drawLayerGame();	
+}
+
+// draw graphics that related to the bg canvas
+function drawLayerBG()
+{
+	var ctx = untangleGame.layers[0];
+	clear(ctx);
+}
+
+// draw graphics that related to the game canvas
+function drawLayerGame()
+{
+	// get the reference of the canvas element and the drawing context.
+	var ctx = untangleGame.layers[2];
+	var level = untangleGame.levels[untangleGame.currentLevel];
+	
+	// draw the game state visually
+	// clear the canvas before drawing.
+	clear(ctx);
+	
+	DrawMoons(ctx, level);
+	DrawDomainLinks(ctx, level);
+	DrawDomains(ctx, level);
+}
+
+
+
+
+
+
+var debug = true;
+
+/*
+Clicking a domain selects it & enables dragging
+
+Return - Center current domain focus
+D - Debug mode
+H - Toggle visibility of all but the domain focus & neighbors
+Shift + H - Hide only the domain focus
+V - Toggle moving on the current domain focus
+R / Esc - Unselect everything / reset
+Tab - Cycle domain focus
+Shift + [ or ] - Toggle through "levels" / configurations
+0-9: Set number of steps from specified domain
+A - Toggle visibility of allied domains
+E - Toggle visibility of enemy domains
+S - Toggle visibility of spied domains
+X - Toggle arrangement of annexed domains
+T - Toggle visibility of misc domains
+*/
+
+$(function(){
+	// prepare layer 0 (bg)
+	var canvas_bg = document.getElementById("bg");
+	untangleGame.layers[0] = canvas_bg.getContext("2d");
+	
+	// prepare layer 2 (game)
+	var canvas = document.getElementById("game");  
+	var ctx = canvas.getContext("2d");
+	untangleGame.layers[2] = ctx;
+	
+	// draw a splash screen when loading the game background
+	// draw gradients background
+	var bg_gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+	bg_gradient.addColorStop(0, "#cccccc");
+	bg_gradient.addColorStop(1, "#efefef");
+	ctx.fillStyle = bg_gradient;
+	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	
+	// draw the loading text
+	ctx.font = "34px 'Arial'";
+	ctx.textAlign = "center";
+	ctx.fillStyle = "#333333";
+	ctx.fillText("loading...",ctx.canvas.width/2,canvas.height/2);
+
+	// setup current level
+	setupCurrentLevel();
+
+	// setup an interval to loop the game loop
+	setInterval(gameloop, 30);
+	    
+	$( "#slider" ).slider({
+		range: "min",
+		value: 1,
+		min: 1,
+		max: 365+1,
+		slide: function( event, ui ) {
+			updateDay(ui.value);
+		}
+	});
+		
+/*	    
+    // we move the target dragging domain when the mouse is moving
+    $("#layers").mousemove(function(e) 
+	{
+    	if (untangleGame.targetDomain != undefined)
+	   	{
+			var canvasPosition = $(this).offset();
+			
+			var mouseX = e.originalEvent.layerX || 0;
+			var mouseY = e.originalEvent.layerY || 0;
+			var radius = untangleGame.domains[untangleGame.targetDomain].radius;
+			var name = untangleGame.domains[untangleGame.targetDomain].name;
+			// untangleGame.domains[untangleGame.targetDomain] = new Domain(name, mouseX, mouseY, radius);	
+			untangleGame.domains[untangleGame.targetDomain].x = mouseX;
+			untangleGame.domains[untangleGame.targetDomain].y = mouseY;
+
+			adjustAnnex(untangleGame.targetDomain, 
+						calculateAngle(untangleGame.domains[untangleGame.targetDomain]), 
+						calculateCenter(), defaultRadius);			
+	   	}
+	});
+
+	$("#layers").click(function(e) 
+	{
+    	var canvasPosition = $(this).offset();
+    	var mouseX = e.originalEvent.layerX || 0;
+    	var mouseY = e.originalEvent.layerY || 0;	      
+	
+		for(var i in untangleGame.domains)
+		{
+			var domainX = untangleGame.domains[i].x;
+			var domainY = untangleGame.domains[i].y;
+			var radius = untangleGame.domains[i].radius;
+			if (Math.pow(mouseX-domainX,2) + Math.pow(mouseY-domainY,2) < Math.pow(radius,2))
+			{
+				if (untangleGame.targetDomain == undefined)
+				{
+					untangleGame.targetDomain = i;
+					bReset = false;
+				}
+		    	else if (untangleGame.targetDomain == i)
+				{
+					untangleGame.targetDomain = undefined;					
+					if (untangleGame.flags["Debug"])
+						alert("("+domainX+","+domainY+")");
+				}
+				
+				break;
+			}
+		}		
+	});
+
+	$(window).keyup(function (e) 
+	{
+		if (e.which == 16)	//Un-shift
+			untangleGame.flags["Shift"] = false;
+	});
+	
+	$(window).keydown(function (e) 
+	{
+		var dirty = false;
+//		alert(e.which);
+		var key = String.fromCharCode(e.which);
+
+		if (e.which == 16)	//shift
+		{
+			untangleGame.flags["Shift"] = true;
+		}
+		
+		if (e.which == 27)	//Esc - Uncenter/untarget all domains
+		{
+			untangleGame.flags = [];
+			setupDefaultFlags();
+			
+			focus = undefined;
+			dirty = true;
+		}
+		else if ((e.which == 13)||(key == "C"))	//Return/C - Center the current focus
+		{
+		}
+		else if (e.which == 9)	//Tab - Cycle the focus through the domains
+		{
+			var level = untangleGame.levels[untangleGame.currentLevel];	
+			var numDomains = Object.size(level.domains);
+			return false;
+		}
+			
+		var focus = undefined;
+		
+		if ((key == "9")||(key == "8")||(key == "7")||
+			(key == "6")||(key == "5")||(key == "4")||
+			(key == "3")||(key == "2")||(key == "1")||
+			(key == "0"))	//Set steps to the specified number
+		{
+			untangleGame.visSteps = parseInt(key);
+			if (focus != undefined)
+			{
+				untangleGame.flags["H"] = true;
+				dirty = true;
+			}
+		}
+		else if (key == "R")	//R - Reset (same as Esc)
+		{
+			untangleGame.flags = [];
+			setupDefaultFlags();
+
+			focus = undefined;
+			dirty = true;
+
+		}
+		else if (key == "X")	//X - Toggle arrangement of annex domains
+		{
+			untangleGame.flags["annex"] = !untangleGame.flags["annex"];
+		}
+		else if (key == "V")	//V - Move the focused domain
+		{
+			if (untangleGame.targetDomain != undefined)
+			{
+				untangleGame.targetDomain = undefined;
+				dirty = true;
+			}
+			else if (untangleGame.targetDomain != focus)
+			{
+				untangleGame.targetDomain = focus;				
+				dirty = true;
+			}		
+		}
+		else if (key == "H")	//H - Toggle visibility
+		{
+			if (untangleGame.flags["Shift"])
+			{
+				dirty = false;
+				if (focus != undefined)
+				{
+					untangleGame.domains[focus].visible = !untangleGame.domains[focus].visible;
+				}
+			}
+			else
+			{
+				untangleGame.flags[key] = !untangleGame.flags[key];
+				dirty = true;
+			}			
+		}
+		else if ((e.which == 219)&&(untangleGame.flags["Shift"]))	//"[" Scroll through levels
+		{
+			if (untangleGame.currentLevel-1 >= 0)
+				untangleGame.currentLevel--;
+			else
+				untangleGame.currentLevel = untangleGame.levels.length - 1;
+			
+			setupCurrentLevel();
+		}
+		else if ((e.which == 221)&&(untangleGame.flags["Shift"]))	//"]" Scroll through levels
+		{
+			if (untangleGame.currentLevel+1 < untangleGame.levels.length)
+				untangleGame.currentLevel++;
+			else
+				untangleGame.currentLevel = 0;
+			
+			setupCurrentLevel();
+		}
+		else if (key == "D")
+		{
+			untangleGame.flags["Debug"] = !untangleGame.flags["Debug"];			
+		}
+		else if (key == "A")
+		{
+			untangleGame.flags["hidealliedDomains"] = !untangleGame.flags["hidealliedDomains"];			
+			untangleGame.flags["hideannexDomains"] = !untangleGame.flags["hideannexDomains"];			
+		}
+		else if (key == "E")
+		{
+			untangleGame.flags["hideenemyDomains"] = !untangleGame.flags["hideenemyDomains"];			
+		}
+		else if (key == "T")
+		{
+			untangleGame.flags["hidemiscDomains"] = !untangleGame.flags["hidemiscDomains"];			
+		}
+		else if (key == "I")
+		{
+			untangleGame.flags["incoming"] = !untangleGame.flags["incoming"];
+		}
+		else if (key == "O")
+		{
+			untangleGame.flags["outgoing"] = !untangleGame.flags["outgoing"];
+		}		
+		else if (key == "L")
+		{
+			untangleGame.flags["Labels"] = !untangleGame.flags["Labels"];
+			dirty = true;			
+		}
+				
+		if (dirty)
+		{
+			dirty = false;
+			updateDomainVisibility(focus, !untangleGame.flags["H"], untangleGame.visSteps);
+			arrangeDomains();
+		}		
+	});
+*/
+});
+
