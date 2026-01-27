@@ -192,7 +192,7 @@ function updatePositions(day)
 		moon = untangleGame.moons[i]
 
 		if (moon.sidereal)
-			year = moon.sidereal
+			year /= moon.sidereal
 		md = (day - 1) % year;
 		
 		var angle = Math.radians(md / year * 360) * -moon.dir
