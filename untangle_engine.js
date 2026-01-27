@@ -45,6 +45,17 @@ function setupCurrentLevel()
 	}
 }
 
+function startAutoUpdate()
+{
+	untangleGame.autoUpdate = setInterval(autoUpdate, 100);
+}
+
+function autoUpdate()
+{
+	day = (untangleGame.day + 1) % 365
+	$("#slider").slider('value',day);
+	updateDay(day);
+}
 
 function updateDay(day)
 {
@@ -136,16 +147,32 @@ $(function(){
 
 	// setup an interval to loop the game loop
 	setInterval(gameloop, 30);
-	    
+	startAutoUpdate();
+	
 	$( "#slider" ).slider({
 		range: "min",
 		value: 1,
 		min: 1,
 		max: 365+1,
 		slide: function( event, ui ) {
+			clearInterval(untangleGame.autoUpdate);			
+			clearTimeout(untangleGame.autoStart);
+			untangleGame.autoStart = setTimeout(() => {
+				startAutoUpdate();
+			}, 10000);
 			updateDay(ui.value);
 		}
 	});
+	
+	$("#layers").click(function(e) 
+	{
+		clearInterval(untangleGame.autoUpdate);			
+		clearTimeout(untangleGame.autoStart);
+		untangleGame.autoStart = setTimeout(() => {
+			startAutoUpdate();
+		}, 10000);
+		updateDay((untangleGame.day + 1) % 365)
+	})
 		
 /*	    
     // we move the target dragging domain when the mouse is moving
