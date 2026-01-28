@@ -24,7 +24,7 @@ function drawLabel(ctx, name, x, y, r)
 	ctx.textAlign = "center";
 	ctx.textBaseline = "bottom";
 	ctx.font = "bold 16px Arial";
-	ctx.fillText(name, x, y - r);	
+	ctx.fillText(name, x, y - r);
 }
 
 function drawDisc(ctx, x, y, r)
@@ -76,6 +76,7 @@ function drawCenter(ctx, r)
 	ctx.textBaseline = "bottom";
 	ctx.font = "bold 16px Arial";
 	ctx.fillText(`Day: ${date}`, cx, cy + 2 * r);		
+	ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r + 20);
 	
 }
 
@@ -103,7 +104,35 @@ function formatDay () {
     return formattedDate
 }
 
-
+function drawMoonData(ctx, moonIndex)
+{
+	moon = untangleGame.moons[moonIndex];
+	if (moon.r == 0) return;
+	
+	parent = null
+	if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
+	
+	info = []
+	info.push(`${moon.name}`)
+	info.push(`Phase Cycle: ${moon.cycle} days`)
+	info.push(`Sidereal: ${moon.sidereal} complete orbits`)
+	info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
+	dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
+	info.push(`Distance: ${dist}`)
+	
+	var margin = 20;
+	var ch = ctx.canvas.height;
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var dx = cx + cy + margin;
+	var dy = (30 * info.length * moonIndex);
+	ctx.fillStyle = "#dddddd";
+	ctx.textAlign = "left";
+	ctx.textBaseline = "bottom";
+	ctx.font = "bold 16px Arial";	
+	for (let i = 0; i < info.length; ++i)
+		ctx.fillText(info[i], dx, dy + (23 * i));
+}
 
 
 function DrawMoonPath(ctx)
@@ -169,6 +198,8 @@ function DrawMoons(ctx, level)
 	{
 		const {name, x, y, r, p} = untangleGame.moons[moon];
 		
+		drawMoonData(ctx, moon);
+
 		if (r == 0) continue;
 
 		drawMoon(ctx, name, x, y, r, p);

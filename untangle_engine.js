@@ -61,6 +61,9 @@ function setupCurrentLevel()
 
 function startAutoUpdate()
 {
+	clearTimeout(untangleGame.autoStart);
+	clearInterval(untangleGame.autoUpdate);
+	untangleGame.autoStart = null;
 	untangleGame.autoUpdate = setInterval(autoUpdate, 100);
 }
 
@@ -69,6 +72,22 @@ function autoUpdate()
 	day = (untangleGame.day + 1) % 365
 	$("#slider").slider('value',day);
 	updateDay(day);
+}
+
+function pauseAutoUpdate(seconds = 10)
+{
+	clearTimeout(untangleGame.autoStart);
+	untangleGame.autoStart = null;
+
+	if (untangleGame.autoUpdate)
+	{
+		untangleGame.autoStart = setTimeout(() => {
+			startAutoUpdate();
+		}, seconds*1000);	
+	}
+	
+	clearInterval(untangleGame.autoUpdate);
+	untangleGame.autoUpdate = null;
 }
 
 function updateDay(day)
@@ -80,6 +99,7 @@ function updateDay(day)
 function gameloop() 
 {	
 	drawLayerBG();
+	drawLayerUI();
 	drawLayerGame();	
 }
 
@@ -96,6 +116,34 @@ function drawLayerBG()
 	var dy = 0
 	
 	ctx.drawImage(untangleGame.background, dx, dy, ch, ch);
+}
+
+function drawLayerUI()
+{
+	var ctx = untangleGame.layers[1];
+	clear(ctx);
+
+	const helpText = [
+		"[p] Show / Hide Paths",
+		"[n] Cycle next orbit variant",
+		"[space] pause/resume"
+	]
+
+	var margin = 20;
+	var ch = ctx.canvas.height;
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var dx = cx + cy + margin;
+	var dy = ctx.canvas.height - (helpText.length * 40);
+	
+	ctx.fillStyle = "#dddddd";
+	ctx.textAlign = "left";
+	ctx.textBaseline = "bottom";
+	ctx.font = "bold 16px Arial";
+	
+	for (let i = 0; i < helpText.length; ++i)
+		ctx.fillText(helpText[i], dx, dy + (23 * i));
+	
 }
 
 // draw graphics that related to the game canvas
@@ -147,6 +195,10 @@ $(function(){
 	var canvas_bg = document.getElementById("bg");
 	untangleGame.layers[0] = canvas_bg.getContext("2d");
 	
+	// prepare layer 1 (UI)
+	var canvas_ui = document.getElementById("ui");
+	untangleGame.layers[1] = canvas_ui.getContext("2d");
+
 	// prepare layer 2 (game)
 	var canvas = document.getElementById("game");  
 	var ctx = canvas.getContext("2d");
@@ -193,35 +245,46 @@ $(function(){
 		min: 1,
 		max: 365+1,
 		slide: function( event, ui ) {
-			clearInterval(untangleGame.autoUpdate);			
-			clearTimeout(untangleGame.autoStart);
-			untangleGame.autoStart = setTimeout(() => {
-				startAutoUpdate();
-			}, 10000);
+			pauseAutoUpdate();
 			updateDay(ui.value);
 		}
 	});
 	
 	$("#layers").click(function(e) 
 	{
-		clearInterval(untangleGame.autoUpdate);			
-		clearTimeout(untangleGame.autoStart);
-		untangleGame.autoStart = setTimeout(() => {
-			startAutoUpdate();
-		}, 10000);
+		pauseAutoUpdate();
 		updateDay((untangleGame.day + 1) % 365)
 	})
 	
 	$(window).keydown(function (e) 
 	{
 		var dirty = false;
-		//alert(e.which);
-		var key = String.fromCharCode(e.which);
+		var key = String.fromCharCode(e.which).toLowerCase();
 		
-		if (key == "p" || key == "P")
+		if (key == "p")
 		{
 			untangleGame.flags["path"] = untangleGame.flags["path"] ?? false
 			untangleGame.flags["path"] = !untangleGame.flags["path"]
+		}
+		else if (key == "n")
+		{
+			untangleGame.currentLevel = (untangleGame.currentLevel + 1) % untangleGame.levels.length
+			day = untangleGame.day
+			setupCurrentLevel();
+			untangleGame.day = day
+			updateDay(untangleGame.day)
+			pauseAutoUpdate();
+		}
+		else if (e.which == 32) //spacebar
+		{
+			if (untangleGame.autoUpdate)
+				pauseAutoUpdate();
+			else
+				startAutoUpdate();
+		}
+		else
+		{
+			//alert(e.which);
 		}
 	})
 		

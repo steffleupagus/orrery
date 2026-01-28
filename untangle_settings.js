@@ -3,7 +3,7 @@ var json = getJsonFromUrl();
 var defaultRadius = 300;
 var defaultDomainSize = 10;
 var defaultMoonSize = 10;
-var defaultMoonDist = 200;
+var defaultMoonDist = 150;
 var avoidRadius = getParameterByName("avoidRadius");
 if (0 == avoidRadius)
 	avoidRadius = defaultDomainSize * 2;
