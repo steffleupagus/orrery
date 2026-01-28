@@ -3,7 +3,7 @@ function clear(ctx)
 	ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height); 
 }
 
-function drawLine(ctx, x1, y1, x2, y2, color1, color2, thickness, label, avoidPoints) 
+function drawLine(ctx, x1, y1, x2, y2, color1, color2, thickness, label="", avoidPoints=[]) 
 {		
 	ctx.beginPath();
 	ctx.lineWidth = thickness;
@@ -14,7 +14,7 @@ function drawLine(ctx, x1, y1, x2, y2, color1, color2, thickness, label, avoidPo
 	ctx.fillStyle = domain_gradient;
 	ctx.strokeStyle = domain_gradient;
 	
-    drawArrow(ctx,x1,y1,x2,y2,3,1,Math.PI/12,30, avoidPoints);		
+    drawArrow(ctx,x1,y1,x2,y2,3,1,Math.PI/12,30, avoidPoints);
 	
 	if (untangleGame.flags["Labels"])
 	{
@@ -143,6 +143,8 @@ var drawArrow=function(ctx,x1,y1,x2,y2,style,which,angle,d, avoidPoints)
 	var lineangle=Math.atan2(y2-y1,x2-x1);
 	// h is the line length of a side of the arrow head
 	var h=Math.abs(d/Math.cos(angle));
+		
+	return;
 	
 	if(which&1)
 	{	// handle far end arrow head

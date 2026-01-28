@@ -39,9 +39,11 @@ function Moon(moon) {
 	this.cycle = moon.cycle ?? 28;
 	this.sidereal = moon.sidereal ?? null;
 	this.offset = moon.offset ?? 0;
-	this.phases = moon.phases || ["🌕","🌖","🌗","🌘","🌑","🌒","🌓","🌔"]
-	this.parent = moon.parent
-	this.dir = moon.dir || 1
+	this.phases = moon.phases || ["🌕","🌖","🌗","🌘","🌑","🌒","🌓","🌔"];
+	this.parent = moon.parent;
+	this.path = moon.path || [];
+	this.pathColor = moon.pathColor;
+	this.dir = moon.dir || 1;
 	this.r = moon.size ?? defaultMoonSize;	
 	this.d = moon.dist ?? defaultMoonDist;
 	this.x = 0;

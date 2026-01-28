@@ -103,6 +103,61 @@ function formatDay () {
     return formattedDate
 }
 
+
+
+
+function DrawMoonPath(ctx)
+{
+	for(var i=0; i < untangleGame.moons.length;++i)
+	{
+		let moon = untangleGame.moons[i];
+		let pointCount = moon.path.length;
+		let thick = moon.r / defaultMoonSize;
+		let color = moon.pathColor;
+
+		if (moon.r == 0 || !color) continue;
+
+		for (var p = 0; p < pointCount; ++p)
+		{
+			var start = moon.path[p];
+			var end = moon.path[(p+1)%pointCount];
+			var rx = 0;
+			var ry = 0;
+			if (start && end && start != end)
+			{
+				var x = end.x - start.x;
+				var y = end.y - start.y;
+				var v = new Point(x,y);
+				v = normal(v);
+				nx = v.x;
+				ny = v.y;				
+				//Rotate the vector
+				theta = Math.radians(0);
+				cs = Math.cos(theta);
+				sn = Math.sin(theta);
+				rx = nx * cs - ny * sn; 
+				ry = nx * sn + ny * cs;
+				//Scale it
+				rx = rx * 0//linkOffsets[type];
+				ry = ry * 0//linkOffsets[type];				
+				
+				var avoidPoints = [];
+
+				drawLine(ctx, start.x + rx, 
+							  start.y + ry, 
+							  end.x + rx, 
+							  end.y + ry, 
+							  color, 
+							  color, 
+							  thick);
+			}
+		}
+	}
+}
+
+
+
+
 function DrawMoons(ctx, level)
 {
 	// draw the demiplane
@@ -113,6 +168,9 @@ function DrawMoons(ctx, level)
 	for (let moon=0; moon < numMoons; ++moon)
 	{
 		const {name, x, y, r, p} = untangleGame.moons[moon];
+		
+		if (r == 0) continue;
+
 		drawMoon(ctx, name, x, y, r, p);
 	}
 }

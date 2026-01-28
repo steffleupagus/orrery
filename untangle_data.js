@@ -9,7 +9,7 @@ var untangleGame = {
 	boldLineThickness: 3,
 	lines: [],
 	currentLevel: json["world"] ?? 0,
-	backgroundSrc: "http://larp.seventh-age.com/images/Dischordia.jpg",
+	backgroundSrc: "Zodiac_Shifted.png",
 	layers: [],
 	flags: []
 };
@@ -21,28 +21,44 @@ levelsMoon =
 		{
 			name: "Queen", 
 			dist: 350,
-			size: defaultDomainSize * 3,
+			size: defaultMoonSize * 3,
 			cycle: 90,
-			sidereal: 3,
+			sidereal: 4,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌑","🌑","🌑","🌒","🌒","🌓","🌔","🌔","🌕","🌕","🌕"],
+			pathColor: "#0000FF"
+		},
+		{
+			name: "",
+			size: 0,
+			dist:175,
+			cycle: 1,
+			sidereal: 1,
+			dir:-1,
+			phases:[""],
 		},
 		{
 			name: "Minister", 
-			size: defaultDomainSize * 2,
-			dist: 175,
+			size: defaultMoonSize * 2,
+			//dist: 175,
+			dist: defaultMoonSize * 3,
 			cycle: 45,
+			//sidereal: 9,
 			sidereal: 9,
 			dir: -1,
 			phases: ["🌕","🌕","🌖","🌗","🌗","🌘","🌑","🌑","🌑","🌒","🌓","🌓","🌔"],
+			pathColor: "#00ff00",
+			parent: 1
 		},
 		{
 			name: "Advisor", 
-			size: defaultDomainSize,
-			dist: defaultDomainSize * 9,
+			size: defaultMoonSize,
+			dist: defaultMoonSize * 9,
 			cycle: 28,
-			sidereal: 13,
+//			sidereal: 10,
+			sidereal: 9,
 			dir: -1,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌒","🌓","🌔"],
+			pathColor: "#ff0000",
 			parent: 0
 		}
 	]

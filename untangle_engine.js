@@ -19,6 +19,7 @@ function setupCurrentLevel()
 	untangleGame.moons = [];
 
 	var level = untangleGame.levels[untangleGame.currentLevel];	
+	untangleGame.backgroundSrc = level.backgroundSrc ?? untangleGame.backgroundSrc;
 	var ctx = untangleGame.layers[0];
 	var center_x = ctx.canvas.width * 0.5;
 	var center_y = ctx.canvas.height * 0.5;
@@ -28,10 +29,23 @@ function setupCurrentLevel()
 		for (let i=0; i < level.moons.length; ++i)
 		{
 			moon = level.moons[i];
-			moon.dist = moon.dist ?? defaultMoonDist * (3 - i)
+			moon.dist = moon.dist ?? defaultMoonDist * (3 - i)			
+			moon.path = []
 			untangleGame.moons.push(new Moon(moon))
 		}
-		updateMoons(untangleGame.day);
+		
+		
+		for (let d=0; d<365; ++d)
+		{
+			updateMoons(d+1)
+			for (let i=0; i < untangleGame.moons.length; ++i)
+			{				
+				let moon = untangleGame.moons[i];
+				moon.path.push({x:moon.x, y:moon.y});
+			}
+		}
+		
+		updateMoons(untangleGame.day);		
 	}
 	
 	if (level.domains)
@@ -74,6 +88,14 @@ function drawLayerBG()
 {
 	var ctx = untangleGame.layers[0];
 	clear(ctx);
+	
+	var ch = ctx.canvas.height
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var dx = cx - cy;
+	var dy = 0
+	
+	ctx.drawImage(untangleGame.background, dx, dy, ch, ch);
 }
 
 // draw graphics that related to the game canvas
@@ -87,7 +109,9 @@ function drawLayerGame()
 	// clear the canvas before drawing.
 	clear(ctx);
 	
+	if (untangleGame.flags["path"]) DrawMoonPath(ctx);
 	DrawMoons(ctx, level);
+	
 	DrawDomainLinks(ctx, level);
 	DrawDomains(ctx, level);
 }
@@ -144,10 +168,24 @@ $(function(){
 
 	// setup current level
 	setupCurrentLevel();
+	
+	// load the background image
+	
+	untangleGame.background = new Image();	
+	untangleGame.background.onload = function() 
+	{
+		// setup an interval to loop the game loop
+		setInterval(gameloop, 30);
+		startAutoUpdate();
+	}
+	untangleGame.background.onerror = function() 
+	{
+		console.log("Error loading the image.");
+	}
+	untangleGame.background.src = untangleGame.backgroundSrc;	
+	console.log(untangleGame.background.src)
+	
 
-	// setup an interval to loop the game loop
-	setInterval(gameloop, 30);
-	startAutoUpdate();
 	
 	$( "#slider" ).slider({
 		range: "min",
@@ -172,6 +210,19 @@ $(function(){
 			startAutoUpdate();
 		}, 10000);
 		updateDay((untangleGame.day + 1) % 365)
+	})
+	
+	$(window).keydown(function (e) 
+	{
+		var dirty = false;
+		//alert(e.which);
+		var key = String.fromCharCode(e.which);
+		
+		if (key == "p" || key == "P")
+		{
+			untangleGame.flags["path"] = untangleGame.flags["path"] ?? false
+			untangleGame.flags["path"] = !untangleGame.flags["path"]
+		}
 	})
 		
 /*	    
