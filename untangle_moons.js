@@ -59,11 +59,20 @@ function drawCenter(ctx, r)
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 
+	// prepare the radial gradients fill style
+	const moon = untangleGame.moons[1]
+
+	var gradient = ctx.createRadialGradient(cx-r/2,cy-r/3,1,cx,cy,r);
+		
+	gradient.addColorStop(0, "#FF00FF");
+	gradient.addColorStop(1, "#660099");
+	ctx.fillStyle = gradient;
+
 	ctx.beginPath();
 	ctx.arc(cx, cy, r, 0, Math.PI*2, true );
 	ctx.closePath();
-	ctx.fillStyle = '#FF00FF';
 	ctx.fill();
+
 	ctx.fillStyle = "#000000";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "center";
