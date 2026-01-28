@@ -164,7 +164,15 @@ function drawLayerGame()
 	DrawDomains(ctx, level);
 }
 
-
+function updateLevel(delta)
+{
+	untangleGame.currentLevel = (untangleGame.currentLevel + delta) % untangleGame.levels.length
+	day = untangleGame.day
+	setupCurrentLevel();
+	untangleGame.day = day
+	updateDay(untangleGame.day)
+	pauseAutoUpdate();	
+}
 
 
 
@@ -251,9 +259,26 @@ $(function(){
 	});
 	
 	$("#layers").click(function(e) 
-	{
-		pauseAutoUpdate();
-		updateDay((untangleGame.day + 1) % 365)
+	{	
+		var canvasPosition = $(this).offset();		
+		var mouseX = e.originalEvent.layerX || 0;
+		var mouseY = e.originalEvent.layerY || 0;
+
+		var ch = ctx.canvas.height;
+		var cx = ctx.canvas.width * 0.5;
+		var cy = ctx.canvas.height * 0.5;
+		var left = mouseX < (cx - cy);
+		var right = mouseX > (cx + cy);
+		
+		if (left)
+			updateLevel(-1)
+		else if (right)
+			updateLevel(1)
+		else
+		{
+			pauseAutoUpdate();
+			updateDay((untangleGame.day + 1) % 365)
+		}
 	})
 	
 	$(window).keydown(function (e) 
@@ -268,12 +293,7 @@ $(function(){
 		}
 		else if (key == "n")
 		{
-			untangleGame.currentLevel = (untangleGame.currentLevel + 1) % untangleGame.levels.length
-			day = untangleGame.day
-			setupCurrentLevel();
-			untangleGame.day = day
-			updateDay(untangleGame.day)
-			pauseAutoUpdate();
+			updateLevel(1)
 		}
 		else if (e.which == 32) //spacebar
 		{
