@@ -127,21 +127,12 @@ function drawMoonData(ctx, moonIndex)
 	let dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
 	let pass = Math.floor(untangleGame.day / (365 / moon.sidereal))
 	let point = moon.path[untangleGame.day-1];
-	let angle = Math.degrees(calculateAngle(point, center))
-	angle = angle <= 0 ? Math.abs(angle) : 360 - angle
-	angle = Math.mround(angle)
-	if (parent)
-	{
-		pCenter = parent ? parent.path[untangleGame.day-1] : center	
-		let pAngle = Math.degrees(calculateAngle(point, pCenter))
-		pAngle = pAngle < 0 ? Math.abs(pAngle) : 360 - pAngle
-		pAngle = Math.mround(pAngle)
-		angle = `${angle} (${pAngle})`
-	}
-
+	let angle = moon.angle
+	if (parent) angle = `${angle} (${moon.pAngle})`
 
 	info = []
 	info.push(`${moon.name}`)
+	info.push(`${moonData[moon.phase].name} in ${moon.sign}`)
 	info.push(`Phase Cycle: ${moon.cycle} days`)
 	info.push(`Sidereal: ${moon.sidereal} complete orbits`)
 	info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
@@ -155,7 +146,7 @@ function drawMoonData(ctx, moonIndex)
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = cx + cy + margin;
-	var dy = 50 + (30 * info.length * (moonIndex-1));
+	var dy = 50 + (30 * (info.length-1) * (moonIndex-1));
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";
@@ -268,22 +259,12 @@ function DrawMoons(ctx, level)
 	}
 }
 
-function updateMoons(day)
+function updateMoons(day, precalc=false)
 {
 	untangleGame.day = day
 	updatePhases(day)
 	updatePositions(day);
-}
-
-const phaseValues = {
-	"🌕":0,
-	"🌖":0.125,
-	"🌗":0.25,
-	"🌘":0.375,
-	"🌑":0.5,
-	"🌒":0.625,
-	"🌓":0.75,
-	"🌔":0.875
+	updateZodiac(day);
 }
 
 function updatePhases(day)
@@ -319,7 +300,7 @@ function updatePhases(day)
         phase = phases[phaseIdx]
 		
 		moon.phase = phase
-		moon.p = phaseValues[phase]
+		if (phase) moon.p = moonData[phase].value	//phaseValues[phase]
 
 		untangleGame.moons[i] = moon;
 	}
@@ -356,5 +337,41 @@ function updatePositions(day)
 		moon.x = radius * Math.cos(angle) + cx;
 		moon.y = radius * Math.sin(angle) + cy;
 		untangleGame.moons[i] = moon;
+	}
+}
+
+function updateZodiac(day, ctx)
+{
+	var ctx = untangleGame.layers[0];
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var center = {x:cx, y:cy}
+
+	var numMoons = untangleGame.moons.length
+	for (let i=0; i < numMoons; ++i)
+	{
+		moon = untangleGame.moons[i]
+		if (moon.path.length < day) continue;
+
+		parent = null
+		if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
+
+		let point = moon.path[day-1];
+		let angle = Math.degrees(calculateAngle(point, center))
+		angle = angle <= 0 ? Math.abs(angle) : 360 - angle
+		angle = Math.mround(angle)
+		moon.angle = angle
+		
+		if (parent)
+		{
+			pCenter = parent ? parent.path[untangleGame.day-1] : center	
+			let pAngle = Math.degrees(calculateAngle(point, pCenter))
+			pAngle = pAngle < 0 ? Math.abs(pAngle) : 360 - pAngle
+			moon.pAngle = Math.mround(pAngle)
+		}
+		
+		// find Zodiac
+		zodiac = constellations[moon.name]
+		moon.sign = zodiac?.find(x => x.day.start <= day && x.day.end >= day)?.name
 	}
 }

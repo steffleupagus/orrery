@@ -37,7 +37,7 @@ function setupCurrentLevel()
 		
 		for (let d=0; d<365; ++d)
 		{
-			updateMoons(d+1)
+			updateMoons(d+1, true)
 			for (let i=0; i < untangleGame.moons.length; ++i)
 			{				
 				let moon = untangleGame.moons[i];
