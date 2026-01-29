@@ -25,6 +25,10 @@ Math.degrees = function(radians) {
   return radians * 180 / Math.PI;
 };
 
+Math.mround = function(val) {
+	return Math.round((val + Number.EPSILON) * 100) / 100
+}
+
 Object.size = function(obj) {
     var size = 0, key;
     for (key in obj) {
@@ -214,12 +218,37 @@ function calculateCenter()
 	return new Point(center_x, center_y);
 }
 
-function calculateAngle(domain)
+function calculateAngle(point, center = null)
 {
-	var point = calculateCenter();
-	deltaY = domain.y - point.y;
-	deltaX = domain.x - point.x;
+	center = center ?? calculateCenter();
+	
+	deltaY = point.y - center.y;
+	deltaX = point.x - center.x;
 
+	norm = normal({x:deltaX, y:deltaY})
+	
+	deltaY = norm.y
+	deltaX = norm.x
+	
 	angle = Math.atan2(deltaY, deltaX);
 	return angle;
+}
+
+function offsetPointToCenter(P, C, d)
+{
+	h = C.x
+	k = C.y
+	x = P.x
+	y = P.y
+	r = Math.sqrt(sqr(x-h)+sqr(y-k))
+	
+	// Calculate the normalized Unit Vector (Direction towards center)
+	nx = (h-x) / r
+	ny = (k-y) / r
+	
+	// Calculate the new point
+	px = x + d * nx
+	py = y + d * ny
+	
+	return {x:px, y:py}
 }

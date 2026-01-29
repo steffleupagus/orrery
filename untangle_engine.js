@@ -41,7 +41,7 @@ function setupCurrentLevel()
 			for (let i=0; i < untangleGame.moons.length; ++i)
 			{				
 				let moon = untangleGame.moons[i];
-				moon.path.push({x:moon.x, y:moon.y});
+				moon.path.push({x:moon.x, y:moon.y, p:moon.phase});
 			}
 		}
 		
@@ -166,7 +166,11 @@ function drawLayerGame()
 
 function updateLevel(delta)
 {
-	untangleGame.currentLevel = (untangleGame.currentLevel + delta) % untangleGame.levels.length
+	level = untangleGame.currentLevel + delta
+	if (level < 0) level = untangleGame.levels.length - 1
+	level = level % untangleGame.levels.length
+		
+	untangleGame.currentLevel = level
 	day = untangleGame.day
 	setupCurrentLevel();
 	untangleGame.day = day
@@ -294,6 +298,15 @@ $(function(){
 		else if (key == "n")
 		{
 			updateLevel(1)
+		}
+		else if ((key == "q")||(key == "m")||(key == "a"))
+		{
+			moon = untangleGame.moons.map(m => m.name.toLowerCase()).filter(m => m[0] == key);
+			if (moon && moon.length > 0) moon = moon[0] 
+			else return;
+			const flag = "phaseIcons"+moon
+			untangleGame.flags[flag] = untangleGame.flags[flag] ?? false
+			untangleGame.flags[flag] = !untangleGame.flags[flag]
 		}
 		else if (e.which == 32) //spacebar
 		{

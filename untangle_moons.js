@@ -84,8 +84,8 @@ function drawCenter(ctx, r)
 	ctx.textAlign = "center";
 	ctx.textBaseline = "bottom";
 	ctx.font = "bold 16px Arial";
-	ctx.fillText(`Day: ${date}`, cx, cy + 2 * r);		
-	ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r + 20);
+	ctx.fillText(`Day ${untangleGame.day}: ${date}`, cx, cy + 2 * r);		
+	ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r - 25);
 	
 }
 
@@ -118,23 +118,44 @@ function drawMoonData(ctx, moonIndex)
 	moon = untangleGame.moons[moonIndex];
 	if (moon.r == 0) return;
 	
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var center = {x:cx, y:cy}
+	
 	parent = null
 	if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
-	
+	let dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
+	let pass = Math.floor(untangleGame.day / (365 / moon.sidereal))
+	let point = moon.path[untangleGame.day-1];
+	let angle = Math.degrees(calculateAngle(point, center))
+	angle = angle <= 0 ? Math.abs(angle) : 360 - angle
+	angle = Math.mround(angle)
+	if (parent)
+	{
+		pCenter = parent ? parent.path[untangleGame.day-1] : center	
+		let pAngle = Math.degrees(calculateAngle(point, pCenter))
+		pAngle = pAngle < 0 ? Math.abs(pAngle) : 360 - pAngle
+		pAngle = Math.mround(pAngle)
+		angle = `${angle} (${pAngle})`
+	}
+
+
 	info = []
 	info.push(`${moon.name}`)
 	info.push(`Phase Cycle: ${moon.cycle} days`)
 	info.push(`Sidereal: ${moon.sidereal} complete orbits`)
 	info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
-	dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
 	info.push(`Distance: ${dist}`)
+	info.push(`Orbit Pass: ${pass}`)
+	info.push(`Angle: ${angle}`)
+	info.push(`Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
 	
 	var margin = 20;
 	var ch = ctx.canvas.height;
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = cx + cy + margin;
-	var dy = (30 * info.length * moonIndex);
+	var dy = 50 + (30 * info.length * (moonIndex-1));
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";
@@ -146,6 +167,11 @@ function drawMoonData(ctx, moonIndex)
 
 function DrawMoonPath(ctx)
 {
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	center = {x:cx, y:cy}
+	const angleInc = Math.radians( 15 );
+
 	for(var i=0; i < untangleGame.moons.length;++i)
 	{
 		let moon = untangleGame.moons[i];
@@ -155,8 +181,13 @@ function DrawMoonPath(ctx)
 
 		if (moon.r == 0 || !color) continue;
 
+		let lastPhase = null;
+		let lastAngle = null;
+		let currPass = Math.floor(untangleGame.day / (365 / moon.sidereal))
 		for (var p = 0; p < pointCount; ++p)
 		{
+			let pass = Math.floor(p / (365 / moon.sidereal))
+
 			var start = moon.path[p];
 			var end = moon.path[(p+1)%pointCount];
 			var rx = 0;
@@ -188,6 +219,28 @@ function DrawMoonPath(ctx)
 							  color, 
 							  color, 
 							  thick);
+
+				if (untangleGame.flags["phaseIcons"+moon.name.toLowerCase()])
+				{
+					var phase = moon.path[p].p
+					var phaseChange = phase != lastPhase
+					var samePass = currPass == pass
+					var angle = calculateAngle(start, center)
+					if (Math.abs(angle-lastAngle) >= angleInc)
+					{
+						lastAngle = angle;
+						lastPhase = phase;
+						let iconSize = 12 * moon.r / defaultMoonSize
+						let offsetMult = pass - (moon.sidereal / 2)
+						let offset = offsetPointToCenter(start, center, offsetMult * iconSize)
+
+						ctx.fillStyle = "#696969";
+						ctx.textAlign = "center";
+						ctx.textBaseline = "center";
+						ctx.font = `bold ${iconSize}px Arial`;					
+						ctx.fillText(phase, offset.x, offset.y);
+					}
+				}
 			}
 		}
 	}
