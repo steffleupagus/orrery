@@ -60,7 +60,7 @@ const advisor = {
 
 levelsMoon = 
 {
-	flags: ["path"],
+	flags: ["background","path","text"],
 	offset: -88,
 	moons: [nul, queen, minister, advisor]
 }
@@ -100,9 +100,25 @@ levelsMoon4 = { ...levelsMoon, moons: [
 ///
 levelsMoon5 = { ...levelsMoon, moons: [
 	{...nul},
+	{...queen, sidereal: 1},
+	{...minister, dist: defaultMoonSize * 5, parent: null },
+	{...advisor, sidereal: 11 } ]
+}
+
+///
+levelsMoon6 = { ...levelsMoon, moons: [
+	{...nul},
 	{...queen, sidereal: 3, dist: defaultMoonDist, dir: -1 },
 	{...minister, sidereal: 7, dist: defaultMoonDist * 2, parent: null },
 	{...advisor, sidereal: 9, dist: defaultMoonDist * 3, parent: null } ]
+}
+
+///
+levelsMoon7 = { ...levelsMoon, moons: [
+	{...nul, dist: defaultMoonDist * 2},
+	{...queen, sidereal: 3, dist: defaultMoonDist, dir: -1, parent: 0 },
+	{...minister, sidereal: 7, dist: defaultMoonSize * 7, parent: 1 },
+	{...advisor, sidereal: 9, dist: defaultMoonSize * 15, parent: 2 } ]
 }
 
 untangleGame.levels = 
@@ -111,5 +127,7 @@ untangleGame.levels =
 	levelsMoon2,
 	levelsMoon3,
 	levelsMoon4,
-	levelsMoon5
+	levelsMoon5,
+	levelsMoon6,
+	levelsMoon7
 ];

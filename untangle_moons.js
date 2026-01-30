@@ -1,6 +1,6 @@
 
 function drawMoon(ctx, name, x, y, r, phase)
-{
+{	
 	ctx.save(); // Save default state
 	if ( phase <= 0.5 ) {
 		drawDisc(ctx, x, y, r);
@@ -20,6 +20,8 @@ function drawMoon(ctx, name, x, y, r, phase)
 
 function drawLabel(ctx, name, x, y, r)
 {
+	if (!untangleGame.flags["Labels"]) return
+
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "bottom";
@@ -73,20 +75,26 @@ function drawCenter(ctx, r)
 	ctx.closePath();
 	ctx.fill();
 
-	ctx.fillStyle = "#000000";
-	ctx.textAlign = "center";
-	ctx.textBaseline = "center";
-	ctx.font = "bold 16px Arial";
-	ctx.fillText("Demiplane", cx, cy+8);
 	
-	date = formatDay()
-	ctx.fillStyle = "#dddddd";
-	ctx.textAlign = "center";
-	ctx.textBaseline = "bottom";
-	ctx.font = "bold 16px Arial";
-	ctx.fillText(`Day ${untangleGame.day}: ${date}`, cx, cy + 2 * r);		
-	ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r - 25);
+	if (untangleGame.flags["Labels"])
+	{
+		ctx.fillStyle = "#000000";
+		ctx.textAlign = "center";
+		ctx.textBaseline = "center";
+		ctx.font = "bold 16px Arial";
+		ctx.fillText("Demiplane", cx, cy+8);
+	}
 	
+	if (untangleGame.flags["text"])
+	{
+		date = formatDay()
+		ctx.fillStyle = "#dddddd";
+		ctx.textAlign = "center";
+		ctx.textBaseline = "bottom";
+		ctx.font = "bold 16px Arial";
+		ctx.fillText(`Day ${untangleGame.day}: ${date}`, cx, cy + 2 * r);		
+		ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r - 25);
+	}
 }
 
 function formatDay () {
@@ -115,6 +123,8 @@ function formatDay () {
 
 function drawMoonData(ctx, moonIndex)
 {
+	if (!untangleGame.flags["text"]) return;
+	
 	moon = untangleGame.moons[moonIndex];
 	if (moon.r == 0) return;
 	
@@ -126,7 +136,7 @@ function drawMoonData(ctx, moonIndex)
 	if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
 	let dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
 	let pass = Math.floor(untangleGame.day / (365 / moon.sidereal))
-	let point = moon.path[untangleGame.day-1];
+	let point = moon.path[untangleGame.day % 365];
 	let angle = moon.angle
 	if (parent) angle = `${angle} (${moon.pAngle})`
 
@@ -150,9 +160,38 @@ function drawMoonData(ctx, moonIndex)
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";
-	ctx.font = "bold 16px Arial";	
+	ctx.font = "bold 16px Arial";
+	
 	for (let i = 0; i < info.length; ++i)
 		ctx.fillText(info[i], dx, dy + (23 * i));
+}
+
+function drawMoonNotes(ctx)
+{
+	const signs = Object.keys(untangleGame.notes);
+	var dx = 20
+	var dy = 20
+	ctx.textAlign = "left";
+	ctx.textBaseline = "bottom";
+
+	signs.forEach(sign => {
+		phases = untangleGame.notes[sign]
+		ctx.fillStyle = "#00dd00";
+		ctx.font = "14px Arial";	
+
+		if (phases.length == 0)
+		{
+			dy += 22	
+			ctx.font = "bold 18px Arial";
+		}
+			
+		if (phases.length < 4) 
+			ctx.fillStyle = "#dd0000";
+
+		note = `${sign}: ${phases.join("|")}`
+		ctx.fillText(note, dx, dy);
+		dy += 18
+	})
 }
 
 
@@ -241,22 +280,29 @@ function DrawMoonPath(ctx)
 
 
 function DrawMoons(ctx, level)
-{
-	// draw the demiplane
-	drawCenter(ctx, 50);
-	
+{	
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+
 	// draw moons
 	var numMoons = level.moons.length;
 	for (let moon=0; moon < numMoons; ++moon)
 	{
-		const {name, x, y, r, p} = untangleGame.moons[moon];
+		const {name, x, y, r, p, pathColor} = untangleGame.moons[moon];
 		
+		drawMoonNotes(ctx);
 		drawMoonData(ctx, moon);
 
 		if (r == 0) continue;
 
+
+		drawLine(ctx, cx, cy, x, y, pathColor, pathColor, 2);
+
 		drawMoon(ctx, name, x, y, r, p);
 	}
+
+	// draw the demiplane
+	drawCenter(ctx, 50);
 }
 
 function updateMoons(day, precalc=false)
@@ -347,16 +393,18 @@ function updateZodiac(day, ctx)
 	var cy = ctx.canvas.height * 0.5;
 	var center = {x:cx, y:cy}
 
+	day = day % 365
+
 	var numMoons = untangleGame.moons.length
 	for (let i=0; i < numMoons; ++i)
 	{
 		moon = untangleGame.moons[i]
-		if (moon.path.length < day) continue;
 
 		parent = null
 		if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
-
-		let point = moon.path[day-1];
+		
+		let usePath = (moon.path.length > day);
+		let point = usePath ? moon.path[day] : {x:moon.x, y:moon.y};
 		let angle = Math.degrees(calculateAngle(point, center))
 		angle = angle <= 0 ? Math.abs(angle) : 360 - angle
 		angle = Math.mround(angle)
@@ -364,7 +412,7 @@ function updateZodiac(day, ctx)
 		
 		if (parent)
 		{
-			pCenter = parent ? parent.path[untangleGame.day-1] : center	
+			pCenter = usePath ? parent.path[untangleGame.day] : {x:parent.x, y:parent.y}
 			let pAngle = Math.degrees(calculateAngle(point, pCenter))
 			pAngle = pAngle < 0 ? Math.abs(pAngle) : 360 - pAngle
 			moon.pAngle = Math.mround(pAngle)
@@ -372,6 +420,7 @@ function updateZodiac(day, ctx)
 		
 		// find Zodiac
 		zodiac = constellations[moon.name]
-		moon.sign = zodiac?.find(x => x.day.start <= day && x.day.end >= day)?.name
+		//moon.sign = zodiac?.find(x => x.day.start <= day && x.day.end >= day)?.name
+		moon.sign = zodiac?.find(x => x.angle.start <= angle && x.angle.end >= angle)?.name
 	}
 }

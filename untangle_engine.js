@@ -41,9 +41,25 @@ function setupCurrentLevel()
 			for (let i=0; i < untangleGame.moons.length; ++i)
 			{				
 				let moon = untangleGame.moons[i];
-				moon.path.push({x:moon.x, y:moon.y, p:moon.phase});
+				moon.path.push({x:moon.x, y:moon.y, p:moon.phase, s:moon.sign});
 			}
 		}
+		const signs = {}
+		for (let i=0; i < untangleGame.moons.length; ++i)
+		{
+			let moon = untangleGame.moons[i];
+			if (moon.r == 0) continue;
+
+			signs[moon.name] = []
+			moon.path.forEach(path => {				
+				signs[path.s] = signs[path.s] ?? []
+				phase = moonData[path.p].name				
+				if (!signs[path.s].includes(phase))
+					signs[path.s] = [...signs[path.s], phase]
+				signs[path.s].sort()
+			})
+		}
+		untangleGame.notes = signs
 		
 		updateMoons(untangleGame.day);		
 	}
@@ -105,9 +121,11 @@ function gameloop()
 
 // draw graphics that related to the bg canvas
 function drawLayerBG()
-{
+{	
 	var ctx = untangleGame.layers[0];
 	clear(ctx);
+
+	if (!untangleGame.flags["background"]) return;
 	
 	var ch = ctx.canvas.height
 	var cx = ctx.canvas.width * 0.5;
@@ -122,6 +140,8 @@ function drawLayerUI()
 {
 	var ctx = untangleGame.layers[1];
 	clear(ctx);
+
+	if (!untangleGame.flags["text"]) return;
 
 	const helpText = [
 		"[p] Show / Hide Paths",
@@ -178,6 +198,11 @@ function updateLevel(delta)
 	pauseAutoUpdate();	
 }
 
+function ToggleFlag(flag)
+{
+	untangleGame.flags[flag] = untangleGame.flags[flag] ?? false
+	untangleGame.flags[flag] = !untangleGame.flags[flag]
+}
 
 
 
@@ -292,8 +317,19 @@ $(function(){
 		
 		if (key == "p")
 		{
-			untangleGame.flags["path"] = untangleGame.flags["path"] ?? false
-			untangleGame.flags["path"] = !untangleGame.flags["path"]
+			ToggleFlag("path");
+		}
+		else if (key == "b")
+		{
+			ToggleFlag("background");
+		}
+		else if (key == "l")
+		{
+			ToggleFlag("Labels");
+		}
+		else if (key == "t")
+		{
+			ToggleFlag("text");
 		}
 		else if (key == "n")
 		{
