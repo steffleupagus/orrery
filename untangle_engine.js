@@ -35,15 +35,25 @@ function setupCurrentLevel()
 		}
 		
 		
+		const permutations = []
 		for (let d=0; d<365; ++d)
 		{
 			updateMoons(d+1, true)
+
+			permutation = []
 			for (let i=0; i < untangleGame.moons.length; ++i)
 			{				
 				let moon = untangleGame.moons[i];
 				moon.path.push({x:moon.x, y:moon.y, p:moon.phase, s:moon.sign});
+				if (moon.sign) permutation.push(moonData[moon.phase].name.toLowerCase() + " " + moon.sign)
 			}
+			permutation = permutation.join(" ")
+			if (!permutations.includes(permutation)) 
+				permutations.push(permutation)
 		}
+		permutations.sort()
+		console.log(permutations.join("\n"))
+	
 		const signs = {}
 		for (let i=0; i < untangleGame.moons.length; ++i)
 		{
@@ -59,6 +69,7 @@ function setupCurrentLevel()
 				signs[path.s].sort()
 			})
 		}
+		signs["Permutations :"+permutations.length] = []
 		untangleGame.notes = signs
 		
 		updateMoons(untangleGame.day);		
@@ -85,7 +96,7 @@ function startAutoUpdate()
 
 function autoUpdate()
 {
-	day = (untangleGame.day + 1) % 365
+	day = ((untangleGame.day + 1) % 365) + 1
 	$("#slider").slider('value',day);
 	updateDay(day);
 }

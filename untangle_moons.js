@@ -132,13 +132,17 @@ function drawMoonData(ctx, moonIndex)
 	var cy = ctx.canvas.height * 0.5;
 	var center = {x:cx, y:cy}
 	
+	day = (untangleGame.day - 1) % 365
+	
 	parent = null
 	if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
 	let dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
-	let pass = Math.floor(untangleGame.day / (365 / moon.sidereal))
-	let point = moon.path[untangleGame.day % 365];
+	let pass = Math.floor(day / (365 / moon.sidereal))
+	let point = moon.path[day];
 	let angle = moon.angle
 	if (parent) angle = `${angle} (${moon.pAngle})`
+
+	//console.log(moon.path)
 
 	info = []
 	info.push(`${moon.name}`)
@@ -148,8 +152,8 @@ function drawMoonData(ctx, moonIndex)
 	info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
 	info.push(`Distance: ${dist}`)
 	info.push(`Orbit Pass: ${pass}`)
-	info.push(`Angle: ${angle}`)
 	info.push(`Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
+	info.push(`Angle: ${angle}`)
 	
 	var margin = 20;
 	var ch = ctx.canvas.height;
@@ -168,6 +172,8 @@ function drawMoonData(ctx, moonIndex)
 
 function drawMoonNotes(ctx)
 {
+	if (!untangleGame.flags["text"]) return;
+	
 	const signs = Object.keys(untangleGame.notes);
 	var dx = 20
 	var dy = 20
@@ -256,7 +262,9 @@ function DrawMoonPath(ctx)
 					var phaseChange = phase != lastPhase
 					var samePass = currPass == pass
 					var angle = calculateAngle(start, center)
-					if (Math.abs(angle-lastAngle) >= angleInc)
+					var dayRange = p <= untangleGame.day
+					//if (Math.abs(angle-lastAngle) >= angleInc)
+					if (phaseChange && dayRange)
 					{
 						lastAngle = angle;
 						lastPhase = phase;
@@ -266,7 +274,7 @@ function DrawMoonPath(ctx)
 
 						ctx.fillStyle = "#696969";
 						ctx.textAlign = "center";
-						ctx.textBaseline = "center";
+						ctx.textBaseline = "middle";
 						ctx.font = `bold ${iconSize}px Arial`;					
 						ctx.fillText(phase, offset.x, offset.y);
 					}
@@ -295,7 +303,6 @@ function DrawMoons(ctx, level)
 
 		if (r == 0) continue;
 
-
 		drawLine(ctx, cx, cy, x, y, pathColor, pathColor, 2);
 
 		drawMoon(ctx, name, x, y, r, p);
@@ -316,7 +323,7 @@ function updateMoons(day, precalc=false)
 function updatePhases(day)
 {
 	year = 365
-	day = day % year
+	day = (day - 1) % year
 	var level = untangleGame.levels[untangleGame.currentLevel];	
 	var numMoons = level.moons.length;
 	for (let i=0; i < numMoons; ++i)
@@ -371,7 +378,7 @@ function updatePositions(day)
 
 		if (moon.sidereal)
 			year /= moon.sidereal
-		md = (day - 1) % year;
+		md = (day - 1) % year
 		
 		var angle = Math.radians(md / year * 360) * -moon.dir
 		
@@ -393,7 +400,7 @@ function updateZodiac(day, ctx)
 	var cy = ctx.canvas.height * 0.5;
 	var center = {x:cx, y:cy}
 
-	day = day % 365
+	day = (day - 1) % 365
 
 	var numMoons = untangleGame.moons.length
 	for (let i=0; i < numMoons; ++i)
@@ -403,7 +410,7 @@ function updateZodiac(day, ctx)
 		parent = null
 		if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
 		
-		let usePath = (moon.path.length > day);
+		let usePath = (moon.path.length > day && day >= 0);
 		let point = usePath ? moon.path[day] : {x:moon.x, y:moon.y};
 		let angle = Math.degrees(calculateAngle(point, center))
 		angle = angle <= 0 ? Math.abs(angle) : 360 - angle

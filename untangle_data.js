@@ -18,116 +18,114 @@ var untangleGame = {
 const nul = {
 			name: "[nul]",
 			size: 0,
-			dist:175,
 			cycle: 1,
-			sidereal: 1,
-			dir:-1,
 			phases:[""],
+
+			sidereal: 3,
+			dir:-1,
+			dist:175,
 		}
 const queen = {
 			name: "Queen", 
-			dist: 350,
 			size: defaultMoonSize * 3,
 			cycle: 90,
-			sidereal: 4,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌑","🌑","🌑","🌒","🌒","🌓","🌔","🌔","🌕","🌕","🌕"],
-			pathColor: "#0000FF"
+			pathColor: "#0000FF",
+
+			sidereal: 3,
+			dir: 1, 
+			dist: 350,
 		}
 const minister = {
 			name: "Minister", 
 			size: defaultMoonSize * 2,
-			//dist: 175,
-			dist: defaultMoonSize * 4,
 			cycle: 45,
-			sidereal: 9,
-			dir: -1,
 			phases: ["🌕","🌕","🌖","🌗","🌗","🌘","🌑","🌑","🌑","🌒","🌓","🌓","🌔"],
 			pathColor: "#00ff00",
+
+			sidereal: 5,
+			dir: 1,
+			dist: defaultMoonSize * 3,
 			parent: 0
 		}
 const advisor = {
 			name: "Advisor", 
 			size: defaultMoonSize,
-			dist: defaultMoonSize * 8,//9,
 			cycle: 28,
-			sidereal: 9,
-			dir: -1,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌒","🌓","🌔"],
 			pathColor: "#ff0000",
+
+			sidereal: 10,
+			dir: -1,
+			dist: defaultMoonSize * 9,
 			parent: 1
 		}
 
 
 levelsMoon = 
 {
-	flags: ["background","path","text"],
+	flags: ["background","path"],//,"text"],
 	offset: -88,
 	moons: [nul, queen, minister, advisor]
 }
 
-///
-levelsMoon1 = { ...levelsMoon, moons: [
-	{...nul},
-	{...queen, sidereal: 4},
-	{...minister, dist: 175, parent: null },
-	{...advisor, sidereal: 9 } ]
-}
+
+const levels = []
 
 ///
-levelsMoon2 = { ...levelsMoon, moons: [
-	{...nul},
-	{...queen, sidereal: 3},
-	{...minister, dist: defaultMoonSize * 3 },
-	{...advisor, sidereal: 10 } ]
-}
+levels.push({ ...levelsMoon, moons: [
+				{...nul},
+				{...queen},
+				{...minister},
+				{...advisor} ]
+			})
 
 ///
-levelsMoon3 = { ...levelsMoon, moons: [
-	{...nul},
-	{...queen, sidereal: 2},
-	{...minister, dist: defaultMoonSize * 4 },
-	{...advisor, sidereal: 11 } ]
-}
+levels.push({ ...levelsMoon, moons: [
+				{...nul,		sidereal: 1},
+				{...queen},
+				{...minister, 	sidereal: 9, dir: -1, dist: defaultMoonSize * 3, parent:0},
+				{...advisor, 	dist: defaultMoonSize * 8} ]
+			})
 
 ///
-levelsMoon4 = { ...levelsMoon, moons: [
-	{...nul},
-	{...queen, sidereal: 1},
-	{...minister, dist: defaultMoonSize * 5 },
-	{...advisor, sidereal: 12 } ]
-}
+levels.push({ ...levelsMoon, moons: [
+				{...nul,		sidereal: 7},
+				{...queen},
+				{...minister, 	sidereal: 8, parent:0, dist: defaultMoonSize * 5, dir: 1},
+				{...advisor} ]
+			})
 
 ///
-levelsMoon5 = { ...levelsMoon, moons: [
-	{...nul},
-	{...queen, sidereal: 1},
-	{...minister, dist: defaultMoonSize * 5, parent: null },
-	{...advisor, sidereal: 11 } ]
-}
+levels.push({ ...levelsMoon, moons: [
+				{...nul,		sidereal: 1},
+				{...queen},
+				{...minister, 	sidereal: 7, parent:0, dist: defaultMoonSize * 5, dir: 1},
+				{...advisor} ]
+			})
 
 ///
-levelsMoon6 = { ...levelsMoon, moons: [
-	{...nul},
-	{...queen, sidereal: 3, dist: defaultMoonDist, dir: -1 },
-	{...minister, sidereal: 7, dist: defaultMoonDist * 2, parent: null },
-	{...advisor, sidereal: 9, dist: defaultMoonDist * 3, parent: null } ]
-}
+levels.push({ ...levelsMoon, moons: [
+				{...nul,		sidereal: 1},
+				{...queen},
+				{...minister, 	sidereal: 7, parent:null, dist: 175},
+				{...advisor} ]
+			})
 
 ///
-levelsMoon7 = { ...levelsMoon, moons: [
-	{...nul, dist: defaultMoonDist * 2},
-	{...queen, sidereal: 3, dist: defaultMoonDist, dir: -1, parent: 0 },
-	{...minister, sidereal: 7, dist: defaultMoonSize * 7, parent: 1 },
-	{...advisor, sidereal: 9, dist: defaultMoonSize * 15, parent: 2 } ]
-}
+levels.push({ ...levelsMoon, moons: [
+				{...nul},
+				{...queen, 		sidereal: 1},
+				{...minister,	dist: defaultMoonSize * 5 },
+				{...advisor,	sidereal: 12 } ]
+			})
 
-untangleGame.levels = 
-[
-	levelsMoon1,
-	levelsMoon2,
-	levelsMoon3,
-	levelsMoon4,
-	levelsMoon5,
-	levelsMoon6,
-	levelsMoon7
-];
+///
+levels.push({ ...levelsMoon, moons: [
+				{...nul},
+				{...queen,		sidereal: 3, dist: defaultMoonDist, 	dir: -1 },
+				{...minister, 	sidereal: 7, dist: defaultMoonDist * 2, parent: null },
+				{...advisor, 	sidereal: 9, dist: defaultMoonDist * 3, parent: null } ]
+			})
+
+untangleGame.levels = levels
