@@ -69,16 +69,18 @@ levelsMoon =
 	moons: [nul, queen, minister, advisor]
 }
 
+sync = { sidereal: 1, dir: 1, parent: null }
+
 
 const levels = []
 
 ///
 levels.push({ ...levelsMoon, moons: [
-				{...nul},
-				{...queen},
-				{...minister},
-				{...advisor} ]
-			})
+				{...nul},// sidereal:-5, dist: 150},// ...sync, dist: defaultMoonDist * 0},
+				{...queen},// ...sync, dist: defaultMoonDist * 1},
+				{...minister},// sidereal: 3, dir: -1, dist: 50},// ...sync, dist: defaultMoonDist * 2},
+				{...advisor}//, ...sync, dist: defaultMoonDist *3}
+			]})
 
 ///
 levels.push({ ...levelsMoon, moons: [

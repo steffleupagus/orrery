@@ -44,15 +44,20 @@ function setupCurrentLevel()
 			for (let i=0; i < untangleGame.moons.length; ++i)
 			{				
 				let moon = untangleGame.moons[i];
-				moon.path.push({x:moon.x, y:moon.y, p:moon.phase, s:moon.sign});
+				moon.path.push({x:moon.x, y:moon.y, p:moon.phase, s:moon.sign, a:moon.angle});
 				if (moon.sign) permutation.push(moonData[moon.phase].name.toLowerCase() + " " + moon.sign)
 			}
 			permutation = permutation.join(" ")
 			if (!permutations.includes(permutation)) 
 				permutations.push(permutation)
 		}
+
+		//const moonIdx = 3
+		//console.log(untangleGame.moons[moonIdx].path.map( p => `${Math.mround(p.x-center_x)}, ${Math.mround(p.y-center_y)}`).join("\n") + "\n")
+		//console.log(untangleGame.moons[moonIdx].path.map( p => `${Math.mround(p.a)}`).join("\n") + "\n")
+
 		permutations.sort()
-		console.log(permutations.join("\n"))
+		//console.log(permutations.join("\n"))
 	
 		const signs = {}
 		for (let i=0; i < untangleGame.moons.length; ++i)
