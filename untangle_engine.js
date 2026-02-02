@@ -36,17 +36,21 @@ function setupCurrentLevel()
 		
 		
 		const permutations = []
+		const phases = []
 		for (let d=0; d<365; ++d)
 		{
 			updateMoons(d+1, true)
 
+			phase = ""
 			permutation = []
 			for (let i=0; i < untangleGame.moons.length; ++i)
 			{				
 				let moon = untangleGame.moons[i];
 				moon.path.push({x:moon.x, y:moon.y, p:moon.phase, s:moon.sign, a:moon.angle});
-				if (moon.sign) permutation.push(moonData[moon.phase].name.toLowerCase() + " " + moon.sign)
+				if (moon.sign) permutation.push(moonData[moon.phase].name.toLowerCase() + " " + moon.sign)				
+				phase += moon.phase
 			}
+			phases.push(phase)
 			permutation = permutation.join(" ")
 			if (!permutations.includes(permutation)) 
 				permutations.push(permutation)
@@ -58,6 +62,7 @@ function setupCurrentLevel()
 
 		permutations.sort()
 		//console.log(permutations.join("\n"))
+		console.log(phases.join("\n")+"\n")
 	
 		const signs = {}
 		for (let i=0; i < untangleGame.moons.length; ++i)

@@ -327,10 +327,10 @@ function updatePhases(day)
 	var level = untangleGame.levels[untangleGame.currentLevel];	
 	var numMoons = level.moons.length;
 	for (let i=0; i < numMoons; ++i)
-	{		
+	{
 		moon = untangleGame.moons[i]
         cycle = moon.cycle
-        phases = moon.phases		
+        phases = moon.phases
         phaseCount = phases.length
         monthCount = Math.floor(365 / cycle)
         cycleOffset = moon.offset || 0
@@ -348,8 +348,8 @@ function updatePhases(day)
         D = isSpecial ? 0 : dOff-seasonOffset
         monthDay = isSpecial ? 1 : (((D - 1) % cycle) + 1)
         phaseDay = ((monthDay + cycleOffset - 1) % cycle) + 1
-        phaseIdx = Math.trunc( Math.floor(phaseDay - 1) / dpp ) + 1
-        phaseIdx = ((phaseIdx - 1) % phaseCount)
+        phaseIdx = Math.trunc( (phaseDay) / dpp )
+        phaseIdx = (phaseIdx % phaseCount)
         phase = phases[phaseIdx]
 		
 		moon.phase = phase
