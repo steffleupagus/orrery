@@ -174,7 +174,7 @@ function drawLayerUI()
 	var ch = ctx.canvas.height;
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
-	var dx = cx + cy + margin;
+	var dx = margin;
 	var dy = ctx.canvas.height - (helpText.length * 40);
 	
 	ctx.fillStyle = "#dddddd";

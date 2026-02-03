@@ -130,9 +130,14 @@ function findclosestpoint(a,b,p)
 	return new Point( a.x + a_to_b.x * t, a.y + a_to_b.y * t );
 }
 
+function magnitude(v)
+{
+	return Math.sqrt(v.x*v.x + v.y*v.y);
+}
+
 function normal(v)
 {
-	var vecLen = Math.sqrt(v.x*v.x + v.y*v.y);
+	var vecLen = magnitude(v)
 	var scale = 1/vecLen;
 	nx = v.x * scale;
 	ny = v.y * scale;
@@ -234,6 +239,15 @@ function calculateAngle(point, center = null)
 	return angle;
 }
 
+Math.angle = function (u, v) {
+	const dot = dotproduct(u, v)
+	const magU = magnitude(u)
+	const magV = magnitude(v)
+	const cos = dot / (magU * magV)
+	const angle = Math.acos(cos)
+	return Math.degrees(angle)
+}
+
 function offsetPointToCenter(P, C, d)
 {
 	h = C.x
@@ -251,4 +265,13 @@ function offsetPointToCenter(P, C, d)
 	py = y + d * ny
 	
 	return {x:px, y:py}
+}
+
+function blendColors(colorA, colorB, amount = 0.5) {
+  const [rA, gA, bA] = colorA.match(/\w\w/g).map((c) => parseInt(c, 16));
+  const [rB, gB, bB] = colorB.match(/\w\w/g).map((c) => parseInt(c, 16));
+  const r = Math.round(rA + (rB - rA) * amount).toString(16).padStart(2, '0');
+  const g = Math.round(gA + (gB - gA) * amount).toString(16).padStart(2, '0');
+  const b = Math.round(bA + (bB - bA) * amount).toString(16).padStart(2, '0');
+  return '#' + r + g + b;
 }

@@ -1,6 +1,8 @@
 
 function drawMoon(ctx, name, x, y, r, phase)
 {	
+	x = Math.floor(x)
+	y = Math.floor(y)
 	ctx.save(); // Save default state
 	if ( phase <= 0.5 ) {
 		drawDisc(ctx, x, y, r);
@@ -31,6 +33,9 @@ function drawLabel(ctx, name, x, y, r)
 
 function drawDisc(ctx, x, y, r)
 {
+	x = Math.floor(x)
+	y = Math.floor(y)
+
 	ctx.beginPath();
 	ctx.arc( x, y, r, 0, 2 * Math.PI, true );
 	ctx.closePath();
@@ -40,6 +45,9 @@ function drawDisc(ctx, x, y, r)
 
 function drawPhase(ctx, x, y, r, phase)
 {
+	x = Math.floor(x)
+	y = Math.floor(y)
+
 	ctx.beginPath();
 	ctx.arc( x, y, r, -Math.PI/2, Math.PI/2, true );
 	ctx.closePath();
@@ -75,7 +83,6 @@ function drawCenter(ctx, r)
 	ctx.closePath();
 	ctx.fill();
 
-	
 	if (untangleGame.flags["Labels"])
 	{
 		ctx.fillStyle = "#000000";
@@ -137,7 +144,7 @@ function drawMoonData(ctx, moonIndex)
 	parent = null
 	if (moon.parent !== 'undefined') parent = untangleGame.moons[moon.parent]
 	let dist = parent ? `${parent.d} ± ${moon.d}` : moon.d	
-	let pass = Math.floor(day / (365 / moon.sidereal))
+	let pass = Math.floor(day / (365 / (parent ? parent.sidereal : moon.sidereal)))
 	let point = moon.path[day];
 	let angle = moon.angle
 	if (parent) angle = `${angle} (${moon.pAngle})`
@@ -149,7 +156,7 @@ function drawMoonData(ctx, moonIndex)
 	info.push(`${moonData[moon.phase].name} in ${moon.sign}`)
 	info.push(`Phase Cycle: ${moon.cycle} days`)
 	info.push(`Sidereal: ${moon.sidereal} complete orbits`)
-	info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
+	//info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
 	info.push(`Distance: ${dist}`)
 	info.push(`Orbit Pass: ${pass}`)
 	info.push(`Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
@@ -160,14 +167,39 @@ function drawMoonData(ctx, moonIndex)
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = cx + cy + margin;
-	var dy = 50 + (30 * (info.length-1) * (moonIndex-1));
+	var dy = 30 + (30 * (info.length-1) * (moonIndex-1));
+	ctx.fillStyle = "#dddddd";
+	ctx.textAlign = "left";
+	ctx.textBaseline = "bottom";	
+	for (let i = 0; i < info.length; ++i)
+	{
+		ctx.font = i == 0 ? "bold 16px Arial" : "14px Arial";
+		ctx.fillText(info[i], dx, dy + (23 * i));
+	}
+	//ctx.fillText(dy + (23 * info.length), dx, dy + (23 * info.length));
+}
+
+function drawMoonAspects(ctx)
+{
+	if (!untangleGame.flags["text"]) return;
+
+	var margin = 20;
+	var ch = ctx.canvas.height;
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var dx = cx + cy + margin;
+	var dy = 660
+
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";
 	ctx.font = "bold 16px Arial";
-	
-	for (let i = 0; i < info.length; ++i)
-		ctx.fillText(info[i], dx, dy + (23 * i));
+	ctx.fillText("Aspects", dx, dy);
+	ctx.font = "14px Arial";
+	for (let i = 0; i < untangleGame.aspects.length; ++i)
+	{
+		ctx.fillText(untangleGame.aspects[i], dx, (dy + 23 + 23 * i));
+	}
 }
 
 function drawMoonNotes(ctx)
@@ -294,6 +326,22 @@ function DrawMoons(ctx, level)
 
 	// draw moons
 	var numMoons = level.moons.length;
+	
+	for (let moon=0; moon < numMoons; ++moon)
+	{
+		let {name, x, y, r, p, pathColor, parent} = untangleGame.moons[moon];
+		if (r == 0) continue;
+		
+		drawLine(ctx, cx, cy, x, y, pathColor, pathColor, 2);
+		
+		if (!parent) continue;
+		parent = untangleGame.moons[parent]
+		let color = blendColors(pathColor, parent.pathColor)
+			color = blendColors(color, "#ffffff")
+			
+		drawLine(ctx, parent.x, parent.y, x, y, color, color, 2);				
+	}
+	
 	for (let moon=0; moon < numMoons; ++moon)
 	{
 		const {name, x, y, r, p, pathColor} = untangleGame.moons[moon];
@@ -303,10 +351,9 @@ function DrawMoons(ctx, level)
 
 		if (r == 0) continue;
 
-		drawLine(ctx, cx, cy, x, y, pathColor, pathColor, 2);
-
 		drawMoon(ctx, name, x, y, r, p);
 	}
+	drawMoonAspects(ctx);
 
 	// draw the demiplane
 	drawCenter(ctx, 50);
@@ -314,10 +361,14 @@ function DrawMoons(ctx, level)
 
 function updateMoons(day, precalc=false)
 {
+	var ctx = untangleGame.layers[2];
 	untangleGame.day = day
+	ctx.setTransform(1, 0, 0, 1, 0, 0)
+	
 	updatePhases(day)
-	updatePositions(day);
-	updateZodiac(day);
+	updatePositions(day, ctx);
+	updateZodiac(day, ctx);
+	updateAspects(day, ctx);
 }
 
 function updatePhases(day)
@@ -361,12 +412,11 @@ function updatePhases(day)
 //	console.log(untangleGame.moons.map(x => x.p).join(","))
 }
 
-function updatePositions(day)
+function updatePositions(day, ctx)
 {
 	var level = untangleGame.levels[untangleGame.currentLevel];	
 	var numMoons = level.moons.length;
 	
-	var ctx = untangleGame.layers[0];
 	var center_x = ctx.canvas.width * 0.5;
 	var center_y = ctx.canvas.height * 0.5;
 	var radius = defaultMoonDist;
@@ -393,9 +443,45 @@ function updatePositions(day)
 	}
 }
 
+function updateAspects(day, ctx)
+{
+	var numMoons = untangleGame.moons.length;
+	untangleGame.aspects = [];
+	
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	
+	for (let i=1; i<numMoons; ++i)
+	{
+		let moon_a = untangleGame.moons[i];
+		if (moon_a.r == 0) continue;
+
+		for (let j=1; j<numMoons; ++j)
+		{
+			let moon_b = untangleGame.moons[j];
+			if (moon_b.r == 0) continue;
+			if (i == j) continue;
+		
+			u = { x:( moon_a.x - cx), y:(moon_a.y - cy) }
+			v = { x:( moon_b.x - cx), y:(moon_b.y - cy) }
+
+			if (moon_a.parent && moon_a.parent == j)
+				u = { x:( moon_a.x - moon_b.x), y:(moon_a.y - moon_b.y) }
+			if (moon_b.parent && moon_b.parent == i)
+				v = { x:( moon_b.x - moon_a.x), y:(moon_b.y - moon_a.y) }		
+			
+			let angle = Math.angle(u, v)			
+			let aspect = aspects.find(a => Math.abs(angle - a.a) <= a.v)?.name || "[None]"
+			
+			untangleGame.aspects.push(`${moon_a.name} ⊾ ${moon_b.name}`)
+			untangleGame.aspects.push(` • ${aspect} (${Math.mround(angle)})`)
+		}
+	}
+	
+}
+
 function updateZodiac(day, ctx)
 {
-	var ctx = untangleGame.layers[0];
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var center = {x:cx, y:cy}

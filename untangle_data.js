@@ -64,7 +64,7 @@ const advisor = {
 
 levelsMoon = 
 {
-	flags: ["background","path"],//,"text"],
+	flags: ["background","path","text"],
 	offset: -88,
 	moons: [nul, queen, minister, advisor]
 }
@@ -81,6 +81,15 @@ levels.push({ ...levelsMoon, moons: [
 				{...minister},// sidereal: 3, dir: -1, dist: 50},// ...sync, dist: defaultMoonDist * 2},
 				{...advisor}//, ...sync, dist: defaultMoonDist *3}
 			]})
+
+///
+levels.push({ ...levelsMoon, moons: [
+				{...nul, sidereal:7, dist:25},// sidereal:-5, dist: 150},// ...sync, dist: defaultMoonDist * 0},
+				{...queen},// ...sync, dist: defaultMoonDist * 1},
+				{...minister, sidereal: 1, dir: 1, dist: defaultMoonDist + defaultMoonSize * 3 },// ...sync, dist: defaultMoonDist * 2},
+				{...advisor}//, ...sync, dist: defaultMoonDist *3}
+			]})
+
 
 ///
 levels.push({ ...levelsMoon, moons: [

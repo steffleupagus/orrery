@@ -44,7 +44,7 @@ function Moon(moon) {
 	this.path = moon.path || [];
 	this.pathColor = moon.pathColor;
 	this.dir = moon.dir || 1;
-	this.r = moon.size ?? defaultMoonSize;	
+	this.r = moon.size ?? defaultMoonSize;
 	this.d = moon.dist ?? defaultMoonDist;
 	this.x = 0;
 	this.y = 0;

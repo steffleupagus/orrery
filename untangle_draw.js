@@ -5,6 +5,11 @@ function clear(ctx)
 
 function drawLine(ctx, x1, y1, x2, y2, color1, color2, thickness, label="", avoidPoints=[]) 
 {		
+	x1 = Math.floor(x1)
+	x2 = Math.floor(x2)
+	y1 = Math.floor(y1)
+	y2 = Math.floor(y2)
+
 	ctx.beginPath();
 	ctx.lineWidth = thickness;
 	

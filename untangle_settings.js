@@ -93,3 +93,20 @@ const advisorZodiac = [
 	{ name: "Rabbit", day:{ start:355, end:365 }, angle:{ start:349, end:360 } }
 ]
 const constellations = { Queen:queenZodiac, Minister:ministerZodiac, Advisor:advisorZodiac }
+
+const aspects = [
+	{ name: "Conjunction",	a:0,	v:8,	t:"major", desc:"This is considered the strongest blend of energies represented by the two" },
+	{ name: "Opposite",		a:180,	v:8,	t:"major", desc:"Dynamic/Difficult. Energies are polarized; outer events stimulate their interaction; integration is the challenge"},
+	{ name: "Trine",		a:120,	v:8,	t:"major", desc:"Harmonious alignment. Energies flow smoothly; the connection is beneficial."},
+	{ name: "Square",		a:90,	v:8,	t:"major", desc:"Dynamic/Difficult. energies conflict; internal and creative tensions bring rich rewards through effort over time."},
+	{ name: "Sextile",		a:60,	v:8,	t:"major", desc:"Flowing alignment. The planetary energies flow together, open into new possibilities, new connections."},
+	{ name: "Trine",		a:120,	v:6,	t:"major", desc:"Harmonious alignment. Energies flow smoothly; the connection is beneficial."},
+
+	{ name: "Quincunx",		a:150,	v:4,	t:"minor", desc:"Uneasy relationship. Energies do not flow smoothly, one or the other predominates; discrimination must be employed."},
+	{ name: "Quintile",		a:72,	v:2,	t:"minor", desc:"Subtle, mystical and esoteric. Energies are positively linked and spiritual in dimension."},
+	{ name: "Semisextile",	a:30,	v:2,	t:"minor", desc:"Uneasy alignment, inconjunction. Energies attract each other, require effort, allow entry of new information."},
+	{ name: "Semisquare",	a:45,	v:2,	t:"minor", desc:"Minor dynamic alignment. Energies conflict in determined subtle tension; calmness is required."},
+	{ name: "Sesquiquadrate",	a:135,	v:2,	t:"minor", desc:"Minor dynamic alignment. Energies conflict in determined subtle tension; control is required."},
+	{ name: "Biquintile",	a:144,	v:2,	t:"minor", desc:"Minor flowing alignment. Energies are positively linked, subtle, and spiritual in dimension."},
+	{ name: "Septile",		a:51.42,v:2,	t:"minor", desc:"Subtle and difficult alignment. Energies darkly interact; incline to occult dimensions apart from socially accepted norms."}	
+]
