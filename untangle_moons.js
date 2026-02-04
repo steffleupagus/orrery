@@ -100,7 +100,8 @@ function drawCenter(ctx, r)
 		ctx.textBaseline = "bottom";
 		ctx.font = "bold 16px Arial";
 		ctx.fillText(`Day ${untangleGame.day}: ${date}`, cx, cy + 2 * r);		
-		ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r - 25);
+		if (untangleGame.flags["calculations"])
+			ctx.fillText(`Variant: ${untangleGame.currentLevel+1}`, cx, cy + 2*r - 25);
 	}
 }
 
