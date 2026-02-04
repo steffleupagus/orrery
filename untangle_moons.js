@@ -153,13 +153,16 @@ function drawMoonData(ctx, moonIndex)
 
 	info = []
 	info.push(`${moon.name}`)
-	info.push(`${moonData[moon.phase].name} in ${moon.sign}`)
 	info.push(`Phase Cycle: ${moon.cycle} days`)
-	info.push(`Sidereal: ${moon.sidereal} complete orbits`)
-	//info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
-	info.push(`Distance: ${dist}`)
-	info.push(`Orbit Pass: ${pass}`)
-	info.push(`Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
+	info.push(`Sidereal: ${Math.mround(365 / moon.sidereal)} days`)
+	info.push(`${moonData[moon.phase].name} in ${moon.sign}`)
+	if (untangleGame.flags["calculations"])
+	{
+		info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
+		info.push(`Orbit Pass: ${pass}`)
+		info.push(`Distance: ${dist}`)
+		info.push(`Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
+	}
 	info.push(`Angle: ${angle}`)
 	
 	var margin = 20;
@@ -204,7 +207,7 @@ function drawMoonAspects(ctx)
 
 function drawMoonNotes(ctx)
 {
-	if (!untangleGame.flags["text"]) return;
+	if (!untangleGame.flags["notes"]) return;
 	
 	const signs = Object.keys(untangleGame.notes);
 	var dx = 20
@@ -460,7 +463,7 @@ function updateAspects(day, ctx)
 		{
 			let moon_b = untangleGame.moons[j];
 			if (moon_b.r == 0) continue;
-			if (i == j) continue;
+			if (i >= j) continue;
 		
 			u = { x:( moon_a.x - cx), y:(moon_a.y - cy) }
 			v = { x:( moon_b.x - cx), y:(moon_b.y - cy) }

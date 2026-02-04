@@ -64,7 +64,7 @@ const advisor = {
 
 levelsMoon = 
 {
-	flags: ["background","path"],//,"text"],
+	flags: ["background","path","text"],
 	offset: -88,
 	moons: [nul, queen, minister, advisor]
 }

@@ -107,7 +107,6 @@ function startAutoUpdate()
 function autoUpdate()
 {
 	day = ((untangleGame.day + 1) % 365) + 1
-	$("#slider").slider('value',day);
 	updateDay(day);
 }
 
@@ -130,6 +129,7 @@ function pauseAutoUpdate(seconds = 10)
 function updateDay(day)
 {
 	untangleGame.day = day
+	$("#slider").slider('value',day);
 	updateMoons(untangleGame.day);
 }
 
@@ -165,9 +165,15 @@ function drawLayerUI()
 	if (!untangleGame.flags["text"]) return;
 
 	const helpText = [
-		"[p] Show / Hide Paths",
-		"[n] Cycle next orbit variant",
-		"[space] pause/resume"
+		"Controls",
+		"[p]\tShow / Hide Paths",
+		"[l]\tShow / Hide Labels",
+		"[t]\tShow / Hide Text",
+		"[c]\tShow / Hide Calculations",
+		"[→/↑]\tIncrement Day",
+		"[←/↓]\tDecrement Day",
+		"[space]\tpause/resume",
+		"[click]\tpause & advance day",
 	]
 
 	var margin = 20;
@@ -175,15 +181,17 @@ function drawLayerUI()
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = margin;
-	var dy = ctx.canvas.height - (helpText.length * 40);
+	var dy = ctx.canvas.height - (helpText.length * 30);
 	
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";
-	ctx.font = "bold 16px Arial";
 	
 	for (let i = 0; i < helpText.length; ++i)
+	{
+		ctx.font = i == 0 ? "bold 16px Arial" : "16px Arial";
 		ctx.fillText(helpText[i], dx, dy + (23 * i));
+	}
 	
 }
 
@@ -320,9 +328,9 @@ $(function(){
 		var left = mouseX < (cx - cy);
 		var right = mouseX > (cx + cy);
 		
-		if (left)
+		if (left && untangleGame.flags["variant"])
 			updateLevel(-1)
-		else if (right)
+		else if (right && untangleGame.flags["variant"])
 			updateLevel(1)
 		else
 		{
@@ -344,6 +352,10 @@ $(function(){
 		{
 			ToggleFlag("background");
 		}
+		else if (key == "c")
+		{
+			ToggleFlag("calculations");
+		}
 		else if (key == "l")
 		{
 			ToggleFlag("Labels");
@@ -354,7 +366,11 @@ $(function(){
 		}
 		else if (key == "n")
 		{
-			updateLevel(1)
+			ToggleFlag("notes");
+		}
+		else if (key == "v")
+		{
+			ToggleFlag("variant");
 		}
 		else if ((key == "q")||(key == "m")||(key == "a"))
 		{
@@ -371,6 +387,26 @@ $(function(){
 				pauseAutoUpdate();
 			else
 				startAutoUpdate();
+		}
+		else if (e.which == 38 || e.which == 39)
+		{
+			pauseAutoUpdate();
+			updateDay((untangleGame.day + 1) % 365)
+		}
+		else if (e.which == 37 || e.which == 40)
+		{
+			pauseAutoUpdate();
+			day = (untangleGame.day - 1) % 365;
+			if (day <= 0) day = 365 + day
+			updateDay(day)
+		}		
+		else if (e.which == 61 || e.which == 107)
+		{
+			updateLevel(1)
+		}
+		else if (e.which == 173)
+		{
+			updateLevel(-1)
 		}
 		else
 		{
