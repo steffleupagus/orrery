@@ -149,28 +149,27 @@ function drawMoonData(ctx, moonIndex)
 	let angle = moon.angle
 	if (parent) angle = `${angle} (${moon.pAngle})`
 
-	//console.log(moon.path)
-
 	info = []
 	info.push(`${moon.name}`)
-	info.push(`Phase Cycle: ${moon.cycle} days`)
-	info.push(`Sidereal: ${Math.mround(365 / moon.sidereal)} days`)
-	info.push(`${moonData[moon.phase].name} in ${moon.sign}`)
+	info.push(`• Phase Cycle: ${moon.cycle} days`)
+	info.push(`• Sidereal: ${Math.mround(365 / moon.sidereal)} days`)
 	if (untangleGame.flags["calculations"])
 	{
-		info.push(`Orbits around: ${parent ? parent.name : "Demiplane"}`)
-		info.push(`Orbit Pass: ${pass}`)
-		info.push(`Distance: ${dist}`)
-		info.push(`Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
+		info.push(`• Orbits around: ${parent ? parent.name : "Demiplane"}`)
+		info.push(`• Orbit Pass: ${pass}`)
+		info.push(`• Distance: ${dist}`)
+		info.push(`• Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
+		info.push(`• Angle: ${angle}`)
 	}
-	info.push(`Angle: ${angle}`)
+	info.push(`• ${moonData[moon.phase].name} in ${moon.sign}`)
+	info.push(``)
 	
 	var margin = 20;
 	var ch = ctx.canvas.height;
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = cx + cy + margin;
-	var dy = 30 + (30 * (info.length-1) * (moonIndex-1));
+	var dy = 30 + (25 * (info.length-1) * (moonIndex-1));
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";	
@@ -179,7 +178,6 @@ function drawMoonData(ctx, moonIndex)
 		ctx.font = i == 0 ? "bold 16px Arial" : "14px Arial";
 		ctx.fillText(info[i], dx, dy + (23 * i));
 	}
-	//ctx.fillText(dy + (23 * info.length), dx, dy + (23 * info.length));
 }
 
 function drawMoonAspects(ctx)
@@ -191,17 +189,16 @@ function drawMoonAspects(ctx)
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = cx + cy + margin;
-	var dy = 660
+	var dy = ctx.canvas.height - (untangleGame.aspects.length * 23)
 
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";
-	ctx.font = "bold 16px Arial";
-	ctx.fillText("Aspects", dx, dy);
-	ctx.font = "14px Arial";
+	
 	for (let i = 0; i < untangleGame.aspects.length; ++i)
 	{
-		ctx.fillText(untangleGame.aspects[i], dx, (dy + 23 + 23 * i));
+		ctx.font = (0 == i) ? "bold 16px Arial" : "14px Arial";
+		ctx.fillText(untangleGame.aspects[i], dx, (dy + 23 * i));
 	}
 }
 
@@ -235,6 +232,26 @@ function drawMoonNotes(ctx)
 	})
 }
 
+function drawHoroscope(ctx)
+{
+	if (!untangleGame.flags["horoscope"]) return;
+	var dx = 20
+	var dy = 40
+	var cx = ctx.canvas.width * 0.5;
+	var cy = ctx.canvas.height * 0.5;
+	var margin = cx - cy - 40
+	
+	ctx.textAlign = "left";
+	ctx.textBaseline = "bottom";
+	ctx.fillStyle = "#dddddd";	
+	ctx.font = "bold 18px Arial";
+	ctx.fillText("Horoscope", dx, dy);
+
+	dy += 22
+	
+	ctx.font = "14px Arial";
+	wrapText(ctx, untangleGame.horoscope, dx, dy, margin, 18)
+}
 
 function DrawMoonPath(ctx)
 {
@@ -350,6 +367,7 @@ function DrawMoons(ctx, level)
 		const {name, x, y, r, p, pathColor} = untangleGame.moons[moon];
 		
 		drawMoonNotes(ctx);
+		drawHoroscope(ctx);
 		drawMoonData(ctx, moon);
 
 		if (r == 0) continue;
@@ -372,6 +390,8 @@ function updateMoons(day, precalc=false)
 	updatePositions(day, ctx);
 	updateZodiac(day, ctx);
 	updateAspects(day, ctx);
+	
+	updateHoroscope(day);
 }
 
 function updatePhases(day)
@@ -449,7 +469,7 @@ function updatePositions(day, ctx)
 function updateAspects(day, ctx)
 {
 	var numMoons = untangleGame.moons.length;
-	untangleGame.aspects = [];
+	untangleGame.aspects = ["Aspects"];
 	
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
@@ -476,8 +496,11 @@ function updateAspects(day, ctx)
 			let angle = Math.angle(u, v)			
 			let aspect = aspects.find(a => Math.abs(angle - a.a) <= a.v)?.name || "[None]"
 			
+			if (untangleGame.flags["calculations"])
+				aspect += ` (${Math.mround(angle)})`
+			
 			untangleGame.aspects.push(`${moon_a.name} ⊾ ${moon_b.name}`)
-			untangleGame.aspects.push(` • ${aspect} (${Math.mround(angle)})`)
+			untangleGame.aspects.push(` • ${aspect}`)
 		}
 	}
 	
@@ -519,4 +542,9 @@ function updateZodiac(day, ctx)
 		//moon.sign = zodiac?.find(x => x.day.start <= day && x.day.end >= day)?.name
 		moon.sign = zodiac?.find(x => x.angle.start <= angle && x.angle.end >= angle)?.name
 	}
+}
+
+function updateHoroscope(day)
+{
+	untangleGame.horoscope = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis volutpat quam felis, eu ullamcorper velit scelerisque sit amet. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi eu lectus id turpis imperdiet elementum. Praesent volutpat, lacus at sodales accumsan, mauris sapien sodales nisl, non molestie felis ligula non elit. Vestibulum pellentesque, nunc sed semper vulputate, enim sapien viverra elit, quis mattis turpis velit a ipsum. Curabitur sed blandit magna. Donec magna enim, feugiat nec arcu id, finibus rutrum metus. Nullam accumsan vehicula felis, id efficitur purus rutrum sit amet. Nullam scelerisque ex sed tempus dignissim. Phasellus ac dapibus purus. Quisque a gravida sapien, quis gravida mi. Nam gravida dui sed ligula imperdiet consequat. Integer dapibus vulputate dolor, sit amet scelerisque diam faucibus vitae. Mauris iaculis felis non libero sagittis malesuada.";
 }

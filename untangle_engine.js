@@ -181,7 +181,7 @@ function drawLayerUI()
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
 	var dx = margin;
-	var dy = ctx.canvas.height - (helpText.length * 30);
+	var dy = ctx.canvas.height - (helpText.length * 23);
 	
 	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
@@ -189,10 +189,9 @@ function drawLayerUI()
 	
 	for (let i = 0; i < helpText.length; ++i)
 	{
-		ctx.font = i == 0 ? "bold 16px Arial" : "16px Arial";
+		ctx.font = i == 0 ? "bold 16px Arial" : "15px Arial";
 		ctx.fillText(helpText[i], dx, dy + (23 * i));
-	}
-	
+	}	
 }
 
 // draw graphics that related to the game canvas
@@ -367,6 +366,10 @@ $(function(){
 		else if (key == "n")
 		{
 			ToggleFlag("notes");
+		}
+		else if (key == "h")
+		{
+			ToggleFlag("horoscope");
 		}
 		else if (key == "v")
 		{
