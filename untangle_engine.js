@@ -375,6 +375,10 @@ $(function(){
 		{
 			ToggleFlag("variant");
 		}
+		else if (key == "s")
+		{
+			ToggleFlag("sun");
+		}
 		else if ((key == "q")||(key == "m")||(key == "a"))
 		{
 			moon = untangleGame.moons.map(m => m.name.toLowerCase()).filter(m => m[0] == key);

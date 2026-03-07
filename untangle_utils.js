@@ -29,6 +29,10 @@ Math.mround = function(val) {
 	return Math.round((val + Number.EPSILON) * 100) / 100
 }
 
+Math.clamp = function (num, min, max) {
+  return Math.min(Math.max(num, min), max);
+}
+
 Object.size = function(obj) {
     var size = 0, key;
     for (key in obj) {
@@ -52,18 +56,37 @@ function isInBetween(a, b, c) {
 }
 
 
-function isIntersect(line1, line2)
+function findSegmentIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+        return false;
+    }
+
+    const denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+
+    if (denominator === 0) {
+        return false;
+    }
+
+    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+
+    if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+        let x = x1 + ua * (x2 - x1);
+        let y = y1 + ua * (y2 - y1);
+        return { x, y };
+    }
+
+    return false;
+}
+
+function getIntersect(line1, line2)
 {
 	if ((typeof(line1.startPoint) == 'undefined') || 
 		(typeof(line1.endPoint) == 'undefined') || 		
 		(typeof(line2.startPoint) == 'undefined') || 
-		(typeof(line2.endPoint) == 'undefined') ||
-		!line1.startPoint.visible ||
-		!line1.endPoint.visible ||
-		!line2.startPoint.visible ||
-		!line2.endPoint.visible)
+		(typeof(line2.endPoint) == 'undefined'))
 		{
-			return false;
+			return null;
 		}
 
 	// convert line1 to general form of line: Ax+By = C
@@ -82,7 +105,7 @@ function isIntersect(line1, line2)
 	// parallel when d is 0
 	if (d == 0) 
 	{
-		return false;
+		return null;
 	}else {
 		var x = (b2*c1 - b1*c2) / d;
 		var y = (a1*c2 - a2*c1) / d;
@@ -91,11 +114,11 @@ function isIntersect(line1, line2)
 		if ((isInBetween(line1.startPoint.x, x, line1.endPoint.x) || isInBetween(line1.startPoint.y, y, line1.endPoint.y)) &&
 			(isInBetween(line2.startPoint.x, x, line2.endPoint.x) || isInBetween(line2.startPoint.y, y, line2.endPoint.y))) 
 		{
-			return true;	
+			return {x,y};	
 		}
 	}
 	
-	return false;
+	return null;
 }
 
 function sqr(x) { return x * x }
@@ -239,13 +262,18 @@ function calculateAngle(point, center = null)
 	return angle;
 }
 
-Math.angle = function (u, v) {
+
+Math.angleRad = function (u, v) {
 	const dot = dotproduct(u, v)
 	const magU = magnitude(u)
 	const magV = magnitude(v)
 	const cos = dot / (magU * magV)
 	const angle = Math.acos(cos)
-	return Math.degrees(angle)
+	return angle
+}
+
+Math.angleDeg = function(u,v) {
+	return Math.degrees(Math.angleRad(u,v));
 }
 
 function offsetPointToCenter(P, C, d)

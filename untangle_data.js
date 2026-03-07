@@ -30,7 +30,7 @@ const queen = {
 			size: defaultMoonSize * 3,
 			cycle: 90,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌑","🌑","🌑","🌒","🌒","🌓","🌔","🌔","🌕","🌕","🌕"],
-			faces: ["Whore","Mother","Mistress","Whore","Mother","Mistress"],
+			faces: ["Princess","Benevolent","Tyrant","Princess","Benevolent","Tyrant"],
 			pathColor: "#0000FF",
 			sidereal: 3,
 			dir: 1, 

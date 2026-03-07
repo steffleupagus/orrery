@@ -49,4 +49,5 @@ function Moon(moon) {
 	this.x = 0;
 	this.y = 0;
 	this.p = 0;
+	this.isSun = moon.isSun ?? false;
 }

@@ -54,5 +54,6 @@ const moonData = {
 	"🌑":{ value:0.5,	name: "New" },
 	"🌒":{ value:0.625,	name: "Waxing" },
 	"🌓":{ value:0.75,	name: "Waxing" },
-	"🌔":{ value:0.875,	name: "Waxing" }
+	"🌔":{ value:0.875,	name: "Waxing" },
+	"☀️":{ value: 0, 	name: "Sun" }
 }
