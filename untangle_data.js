@@ -30,8 +30,8 @@ const queen = {
 			size: defaultMoonSize * 3,
 			cycle: 90,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌑","🌑","🌑","🌒","🌒","🌓","🌔","🌔","🌕","🌕","🌕"],
+			faces: ["Whore","Mother","Mistress","Whore","Mother","Mistress"],
 			pathColor: "#0000FF",
-
 			sidereal: 3,
 			dir: 1, 
 			dist: 350,
@@ -41,6 +41,7 @@ const minister = {
 			size: defaultMoonSize * 2,
 			cycle: 45,
 			phases: ["🌕","🌕","🌖","🌗","🌗","🌘","🌑","🌑","🌑","🌒","🌓","🌓","🌔"],
+			faces: ["Herald","Steward","Consort","Mediator","Sage","Judge","Chamberlain"],
 			pathColor: "#00ff00",
 
 			sidereal: 5,
@@ -53,6 +54,7 @@ const advisor = {
 			size: defaultMoonSize,
 			cycle: 28,
 			phases: ["🌕","🌖","🌖","🌗","🌘","🌘","🌑","🌒","🌓","🌔"],
+			faces: ["Servant","Brat","Pet","Bound","Sycophant","Fool"],
 			pathColor: "#ff0000",
 
 			sidereal: 10,
@@ -60,13 +62,24 @@ const advisor = {
 			dist: defaultMoonSize * 9,
 			parent: 1
 		}
+const sun = {
+			name: "Bound Sun",
+			size: 1,
+			cycle: 1,
+			phases:["☀️"],
+			pathColor: "#FFFF00",
 
+			sidereal: 1,
+			dir:1,
+			dist:670,
+			isSun: true
+}
 
 levelsMoon = 
 {
 	flags: ["background","path","text"],
 	offset: -88,
-	moons: [nul, queen, minister, advisor]
+	moons: [nul, queen, minister, advisor, sun]
 }
 
 sync = { sidereal: 1, dir: 1, parent: null }
@@ -79,7 +92,8 @@ levels.push({ ...levelsMoon, moons: [
 				{...nul},// sidereal:-5, dist: 150},// ...sync, dist: defaultMoonDist * 0},
 				{...queen},// ...sync, dist: defaultMoonDist * 1},
 				{...minister},// sidereal: 3, dir: -1, dist: 50},// ...sync, dist: defaultMoonDist * 2},
-				{...advisor}//, ...sync, dist: defaultMoonDist *3}
+				{...advisor},//, ...sync, dist: defaultMoonDist *3}
+				//{...sun}
 			]})
 
 ///

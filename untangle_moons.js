@@ -31,7 +31,7 @@ function drawLabel(ctx, name, x, y, r)
 	ctx.fillText(name, x, y - r);
 }
 
-function drawDisc(ctx, x, y, r)
+function drawDisc(ctx, x, y, r, color = '#660099')
 {
 	x = Math.floor(x)
 	y = Math.floor(y)
@@ -39,7 +39,7 @@ function drawDisc(ctx, x, y, r)
 	ctx.beginPath();
 	ctx.arc( x, y, r, 0, 2 * Math.PI, true );
 	ctx.closePath();
-	ctx.fillStyle = '#660099';
+	ctx.fillStyle = color;
 	ctx.fill();
 }
 
@@ -135,6 +135,7 @@ function drawMoonData(ctx, moonIndex)
 	
 	moon = untangleGame.moons[moonIndex];
 	if (moon.r == 0) return;
+	if (moon.isSun && !untangleGame.flags["sun"]) return;
 	
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
@@ -149,6 +150,7 @@ function drawMoonData(ctx, moonIndex)
 	let point = moon.path[day];
 	let angle = moon.angle
 	if (parent) angle = `${angle} (${moon.pAngle})`
+	let moonPhase = moonData[moon.phase].name;
 
 	info = []
 	info.push(`${moon.name}`)
@@ -161,8 +163,8 @@ function drawMoonData(ctx, moonIndex)
 		info.push(`• Distance: ${dist}`)
 		info.push(`• Position: ${Math.mround(point.x - cx)}, ${Math.mround(point.y - cy)}`)
 		info.push(`• Angle: ${angle}`)
-	}
-	info.push(`• ${moonData[moon.phase].name} in ${moon.sign}`)
+	}	
+	info.push(`• ${moonPhase} ${moon.face} in ${moon.sign}`)
 	info.push(``)
 	
 	var margin = 20;
@@ -171,11 +173,11 @@ function drawMoonData(ctx, moonIndex)
 	var cy = ctx.canvas.height * 0.5;
 	var dx = cx + cy + margin;
 	var dy = 30 + (25 * (info.length-1) * (moonIndex-1));
-	ctx.fillStyle = "#dddddd";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "bottom";	
 	for (let i = 0; i < info.length; ++i)
 	{
+		ctx.fillStyle = i == 0 ? moon.pathColor : "#dddddd";
 		ctx.font = i == 0 ? "bold 16px Arial" : "14px Arial";
 		ctx.fillText(info[i], dx, dy + (23 * i));
 	}
@@ -199,7 +201,7 @@ function drawMoonAspects(ctx)
 	for (let i = 0; i < untangleGame.aspects.length; ++i)
 	{
 		ctx.font = (0 == i) ? "bold 16px Arial" : "14px Arial";
-		ctx.fillText(untangleGame.aspects[i], dx, (dy + 23 * i));
+		ctx.fillText(untangleGame.aspects[i], dx, (dy + 20 * i));
 	}
 }
 
@@ -269,6 +271,7 @@ function DrawMoonPath(ctx)
 		let color = moon.pathColor;
 
 		if (moon.r == 0 || !color) continue;
+		if (moon.isSun && !untangleGame.flags["sun"]) continue;
 
 		let lastPhase = null;
 		let lastAngle = null;
@@ -344,6 +347,16 @@ function DrawMoons(ctx, level)
 {	
 	var cx = ctx.canvas.width * 0.5;
 	var cy = ctx.canvas.height * 0.5;
+	const tl = {x:cx-cy, y:0}
+	const tr = {x:cx+cy, y:0}
+	const bl = {x:cx-cy, y:ctx.canvas.height}
+	const br = {x:cx+cy, y:ctx.canvas.height}	
+	const borderLines = [
+		{ startPoint:tl, endPoint:tr },
+		{ startPoint:tr, endPoint:br },
+		{ startPoint:br, endPoint:bl },
+		{ startPoint:bl, endPoint:tl }
+	]
 
 	// draw moons
 	var numMoons = level.moons.length;
@@ -353,25 +366,49 @@ function DrawMoons(ctx, level)
 		let {name, x, y, r, p, pathColor, parent} = untangleGame.moons[moon];
 		if (r == 0) continue;
 		
+		x = Math.clamp(x, cx-cy, cx+cy)
+		y = Math.clamp(y, 0, ctx.canvas.height)
 		drawLine(ctx, cx, cy, x, y, pathColor, pathColor, 2);
-		
-		if (!parent) continue;
-		parent = untangleGame.moons[parent]
-		let color = blendColors(pathColor, parent.pathColor)
-			color = blendColors(color, "#ffffff")
+
+		if (untangleGame.sunPos)
+		{
+			sx = untangleGame.sunPos.x + cx
+			sy = untangleGame.sunPos.y + cy					
+			sunLine = { startPoint:{x, y}, endPoint:{x:sx,y:sy} }
 			
-		drawLine(ctx, parent.x, parent.y, x, y, color, color, 2);				
+			borderLines.forEach(line => {
+				drawLine(ctx, line.startPoint.x, line.startPoint.y, 
+							  line.endPoint.x, line.endPoint.y, "#ff00ff", "#ff00ff", 2);
+				linex = getIntersect(line, sunLine)
+				if (linex)
+				{
+					drawDisc(ctx, linex.x, linex.y, 5, '#ff00ff')
+					sx = linex.x
+					sy = linex.y
+				}
+			});			
+			drawLine(ctx, x, y, sx, sy, "#ffff00", "#ffff00", 2);
+		}
+		
+		if (parent)
+		{
+			parent = untangleGame.moons[parent]
+			let color = blendColors(pathColor, parent.pathColor)
+				color = blendColors(color, "#ffffff")			
+			drawLine(ctx, parent.x, parent.y, x, y, color, color, 2);
+		}
 	}
 	
 	for (let moon=0; moon < numMoons; ++moon)
 	{
-		const {name, x, y, r, p, pathColor} = untangleGame.moons[moon];
+		const {name, x, y, r, p, isSun, pathColor} = untangleGame.moons[moon];
 		
 		drawMoonNotes(ctx);
 		drawHoroscope(ctx);
 		drawMoonData(ctx, moon);
 
-		if (r == 0) continue;
+		if (r == 0) continue;	
+		if (isSun && !untangleGame.flags["sun"]) continue;
 
 		drawMoon(ctx, name, x, y, r, p);
 	}
@@ -387,15 +424,54 @@ function updateMoons(day, precalc=false)
 	untangleGame.day = day
 	ctx.setTransform(1, 0, 0, 1, 0, 0)
 	
-	updatePhases(day)
 	updatePositions(day, ctx);
 	updateZodiac(day, ctx);
 	updateAspects(day, ctx);
+	updatePhases(day, ctx);
+//	updateAccuratePhases(day, ctx);
 	
 	updateHoroscope(day);
 }
 
-function updatePhases(day)
+function updateAccuratePhases(day, ctx)
+{
+	var center_x = ctx.canvas.width * 0.5;
+	var center_y = ctx.canvas.height * 0.5;
+
+	year = 365
+	day = (day - 1) % year
+
+	var sunAngle = -(day / year * 360)
+		sunAngle = Math.radians(sunAngle)
+	var sunDist = 670;
+	var sunPos = {x:sunDist * Math.cos(sunAngle), y:sunDist * Math.sin(sunAngle)};
+	untangleGame.sunPos = sunPos;
+
+	var numMoons = untangleGame.moons.length;
+	for (let i=0; i < numMoons; ++i)
+	{
+		moon = untangleGame.moons[i]
+
+		u = sunPos
+		v = { x:( moon.x - cx), y:(moon.y - cy) }
+
+		let angle = Math.angleDeg(u,v)
+		phase = angle / 360
+		phase += 0.5
+		if (phase >= 1) phase = phase - 1
+		phases = Object.keys(moonData)
+		for (p = 0; p < phases.length-1; ++p)
+		{
+			if (moonData[phases[p]].value <= phase && moonData[phases[p+1]].value >= phase)
+			{
+				moon.p = phases[p]
+				break;
+			}
+		}
+	}
+}
+
+function updatePhases(day, ctx)
 {
 	year = 365
 	day = (day - 1) % year
@@ -429,6 +505,15 @@ function updatePhases(day)
 		
 		moon.phase = phase
 		if (phase) moon.p = moonData[phase].value	//phaseValues[phase]
+
+		faces = level.moons[i].faces ?? null
+		if (faces)
+		{
+			pRot = year / faces.length
+			faceIdx = Math.floor(day / pRot) % faces.length
+			face = faces[faceIdx]
+			moon.face = face
+		}
 
 		untangleGame.moons[i] = moon;
 	}
@@ -478,13 +563,15 @@ function updateAspects(day, ctx)
 	for (let i=1; i<numMoons; ++i)
 	{
 		let moon_a = untangleGame.moons[i];
-		if (moon_a.r == 0) continue;
+		if (moon_a.r <= 1) continue;
+		if (moon_a.isSun && !untangleGame.flags["sun"]) continue;
 
 		for (let j=1; j<numMoons; ++j)
 		{
 			let moon_b = untangleGame.moons[j];
 			if (moon_b.r == 0) continue;
 			if (i >= j) continue;
+			if (moon_b.isSun && !untangleGame.flags["sun"]) continue;
 		
 			u = { x:( moon_a.x - cx), y:(moon_a.y - cy) }
 			v = { x:( moon_b.x - cx), y:(moon_b.y - cy) }
@@ -494,7 +581,7 @@ function updateAspects(day, ctx)
 			if (moon_b.parent && moon_b.parent == i)
 				v = { x:( moon_b.x - moon_a.x), y:(moon_b.y - moon_a.y) }		
 			
-			let angle = Math.angle(u, v)			
+			let angle = Math.angleDeg(u, v)
 			let aspect = aspects.find(a => Math.abs(angle - a.a) <= a.v)?.name || "[None]"
 			
 			if (untangleGame.flags["calculations"])
